@@ -1,0 +1,10 @@
+{
+    "cmake.buildDirectory": "${workspaceFolder}/build/${buildType}",
+    "cmake.environment": {
+        "PKG_CONFIG_PATH": "${workspaceFolder}/build/vcpkg/installed/x64-linux/${buildType}/lib/pkgconfig:${workspaceFolder}/build/vcpkg/installed/x64-linux/lib/pkgconfig}"
+    },
+    "cmake.configureSettings": {
+        "CMAKE_TOOLCHAIN_FILE": "${workspaceFolder}/build/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    },
+    "cmake.generator": "Ninja"
+}

@@ -1,0 +1,14 @@
+buildType:
+  default: debug
+  description: The build type.
+  choices:
+    debug:
+      short: Debug
+      long: Disable optimizations - include debug information.
+      buildType: debug
+      settings:
+        BUILD_COVERAGE: TRUE
+    release:
+      short: Release
+      long: Optimize for speed - exclude debug information.
+      buildType: release

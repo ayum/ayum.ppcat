@@ -13,8 +13,13 @@ target_link_libraries(cli PRIVATE common)
 find_package(CLI11 CONFIG REQUIRED)
 target_link_libraries(cli PRIVATE CLI11::CLI11)
 
+find_package(mio CONFIG REQUIRED)
+target_link_libraries(cli PRIVATE mio::mio mio::mio_base)
+
+if(BUILD_TESTING)
 find_package(doctest CONFIG REQUIRED)
 target_link_libraries(cli PRIVATE doctest::doctest)
+endif()
 
 add_test(NAME cli COMMAND cli tests)
 

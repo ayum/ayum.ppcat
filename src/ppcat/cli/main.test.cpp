@@ -11,8 +11,8 @@ TEST_CASE("testing tests option") {
 }
 
 TEST_CASE("testing invalid options") {
-    CHECK(main(2, std::move((const char *[]){"ppcat", "nonexistent-argument", nullptr})) == 109);
-    CHECK(main(3, std::move((const char *[]){"ppcat", "nonexistent-argument", "tests", nullptr})) == 109);
+    CHECK(main(2, std::move((const char *[]){"ppcat", "--nonexistent-argument", nullptr})) == 109);
+    CHECK(main(3, std::move((const char *[]){"ppcat", "--nonexistent-argument", "tests", nullptr})) == 109);
 }
 
 TEST_CASE("testing valid options") {

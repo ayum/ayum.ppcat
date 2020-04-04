@@ -1,6 +1,9 @@
 #include "constants.hpp"
 #include "cli.hpp"
 
+#include <iostream>
+#include <fmt/format.h>
+
 #define DOCTEST_CONFIG_IMPLEMENT
 #include <doctest/doctest.h>
 
@@ -24,6 +27,13 @@ int main(int argc, const char * const *argv) {
             }
             return context.run();
         }
+    }
+
+    try {
+        app.run();
+    } catch(const std::exception& e) {
+        std::cerr << fmt::format("{}", e.what()) << std::endl;
+        return 1;
     }
 
     return 0;

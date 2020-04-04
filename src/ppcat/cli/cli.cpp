@@ -3,6 +3,9 @@
 
 #include <CLI/CLI.hpp>
 
+//
+#include <fmt/format.h>
+
 using namespace ppcat::cli;
 using namespace std;
 
@@ -35,6 +38,8 @@ void cli::define() {
         std::cout << std::flush << common::version << std::endl << std::flush;
     }, "Print version");
 
+    app.add_option("files", _config.get<backend::config>().files, "Files to read template parameters from");
+
     if constexpr (common::build_tests) {
         auto &tests = *app.add_subcommand("tests", "Run tests");
         tests.prefix_command();
@@ -48,4 +53,9 @@ void cli::define() {
 
 bool cli::tests() const {
     return static_cast<bool>(*app.get_subcommand("tests"));
+}
+
+
+void cli::run() {
+    fmt::print("{}\n", fmt::join(_config.get<backend::config>().files, " "));
 }

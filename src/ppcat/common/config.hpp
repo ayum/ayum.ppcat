@@ -9,7 +9,7 @@ namespace ppcat::common {
 template<typename ...T>
 struct config {
     template<typename C>
-    C &get() const {
+    C &get() {
         return std::get<C>(_config);
     }
 

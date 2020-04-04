@@ -57,5 +57,5 @@ bool cli::tests() const {
 
 
 void cli::run() {
-    fmt::print("{}\n", fmt::join(_config.get<backend::config>().files, " "));
+    backend(_config.get<backend::config>()).run();
 }

@@ -22,9 +22,6 @@ int main(int argc, const char * const *argv) {
         if (app.tests()) {
             doctest::Context context;
             context.applyCommandLine(argc, argv);
-            if (context.shouldExit()) {
-                return 0;
-            }
             return context.run();
         }
     }

@@ -17,8 +17,6 @@ add_compile_options($<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-Wal
 include(CTest)
 include(FindPkgConfig)
 
-#pkg_search_module(dpdk REQUIRED IMPORTED_TARGET libdpdk)
-
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "/opt/papercat" CACHE PATH "..." FORCE)
 endif()

@@ -4,7 +4,7 @@ target_sources(cli PRIVATE
     main.cc
     main.cpp main.hpp main.test.cpp
     cli.cpp cli.hpp cli.test.cpp
-    reaper.cpp reaper.hpp reaper.test.cpp
+    picker.cpp picker.hpp picker.test.cpp
 #    applier.cpp applier.hpp applier.test.cpp
     backend.cpp backend.hpp backend.test.cpp
     $<TARGET_OBJECTS:common>

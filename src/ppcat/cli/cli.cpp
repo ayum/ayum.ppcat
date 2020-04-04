@@ -38,7 +38,7 @@ void cli::define() {
         std::cout << std::flush << common::version << std::endl << std::flush;
     }, "Print version");
 
-    app.add_option("files", _config.get<backend::config>().files, "Files to read template parameters from");
+    app.add_option("files", std::get<picker::config>(_config.get<backend::config>()).files, "Files to read template parameters from");
 
     if constexpr (common::build_tests) {
         auto &tests = *app.add_subcommand("tests", "Run tests");

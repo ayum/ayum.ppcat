@@ -1,4 +1,5 @@
 #include "backend.hpp"
+#include "picker.hpp"
 
 #include <fmt/format.h>
 
@@ -12,12 +13,13 @@ backend::backend(const backend::config &config)
 }
 
 void backend::run() {
-    for (auto &&file: _config.files) {
+    for (auto &&file: get<picker::config>(_config).files) {
         run_once(file);
     }
 }
 
-json backend::run_once(filesystem::path path) {
-    fmt::print("{}\n", path.string());
-    return {};
+void backend::run_once(filesystem::path path) {
+    json data = picker(path).pick();
+    (void)data;
+    return;
 }

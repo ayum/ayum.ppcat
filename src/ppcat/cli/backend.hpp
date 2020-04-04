@@ -1,26 +1,25 @@
 #ifndef BACKEND_HPP
 #define BACKEND_HPP
 
+#include "picker.hpp"
+
 #include <nlohmann/json.hpp>
 
-#include <vector>
-#include <string>
+#include <tuple>
 #include <filesystem>
 
 namespace ppcat::cli {
 
 struct backend {
 
-    struct config {
-        std::vector<std::string> files;
-    };
+    using config = std::tuple<picker::config>;
 
     backend(const config &config);
 
     void run();
 
 private:
-    nlohmann::json run_once(std::filesystem::path path);
+    void run_once(std::filesystem::path path);
 
 private:
     config _config;

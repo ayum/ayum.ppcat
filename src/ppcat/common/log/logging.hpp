@@ -9,10 +9,7 @@
 
 namespace ppcat::common::log {
 
-struct config {
-    std::string log_level{"error"};
-    std::string log_file;
-};
+constexpr std::string_view default_level = "error";
 
 enum struct level {
     trace,
@@ -28,11 +25,13 @@ level from_str(std::string_view str);
 std::string to_str(level level);
 
 void initialize(std::filesystem::path path, level level);
+void initialize(std::filesystem::path path = {}, std::string level = std::string{default_level});
 
-void initialize(std::filesystem::path path = {}, std::string level = "error");
+void set_level(level level);
+void set_level(std::string level = std::string{default_level});
+void set_file(std::filesystem::path path);
 
 void log(level level, std::string_view msg, const std::experimental::source_location& location = std::experimental::source_location::current());
-
 void trace(std::string_view msg, const std::experimental::source_location& location = std::experimental::source_location::current());
 void debug(std::string_view msg, const std::experimental::source_location& location = std::experimental::source_location::current());
 void info(std::string_view msg, const std::experimental::source_location& location = std::experimental::source_location::current());

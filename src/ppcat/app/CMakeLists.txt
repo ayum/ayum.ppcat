@@ -3,7 +3,6 @@ set_target_properties(app PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 target_sources(app PRIVATE
     main.cc
     main.cpp main.hpp main.test.cpp
-    cli.cpp cli.hpp cli.test.cpp
     picker.cpp picker.hpp picker.test.cpp
     applicator.cpp applicator.hpp applicator.test.cpp
     backend.cpp backend.hpp backend.test.cpp

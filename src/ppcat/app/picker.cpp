@@ -18,6 +18,10 @@ picker::picker(const picker::config &config)
 {
 }
 
+void picker::define_cli(CLI::App &app, config &config) {
+    app.add_option("files", config.file, "File to read template parameters from");
+}
+
 json picker::pick() {
     if (filesystem::is_empty(path)) {
         return {};

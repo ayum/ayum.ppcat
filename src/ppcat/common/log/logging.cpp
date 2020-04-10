@@ -55,11 +55,8 @@ spdlog::level::level_enum to_spdlog_level(log::level level) {
 }
 
 void log::initialize(std::filesystem::path path, level level) {
-    if (not path.empty()) {
-        spdlog::set_default_logger(spdlog::basic_logger_mt("basic_logger", path.string()));
-    }
-
-    spdlog::set_level(to_spdlog_level(level));
+    set_file(path);
+    set_level(level);
 }
 
 void log::initialize(std::filesystem::path path, std::string level) {
@@ -71,6 +68,20 @@ void log::log(log::level level, std::string_view msg, const std::experimental::s
         spdlog::log(to_spdlog_level(level), "{}\nIn {}:{}", msg, location.file_name(), location.line());
     } else {
         spdlog::log(to_spdlog_level(level), "{}", msg);
+    }
+}
+
+void log::set_level(level level) {
+    spdlog::set_level(to_spdlog_level(level));
+}
+
+void log::set_level(std::string level) {
+    set_level(log::from_str(level));
+}
+
+void log::set_file(std::filesystem::path path) {
+    if (not path.empty()) {
+        spdlog::set_default_logger(spdlog::basic_logger_mt("basic_logger", path.string()));
     }
 }
 

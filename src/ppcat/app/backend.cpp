@@ -1,28 +1,27 @@
 #include "backend.hpp"
 #include "picker.hpp"
+#include "logging.hpp"
 
+#include <CLI/CLI.hpp>
 #include <fmt/format.h>
 
 #include <filesystem>
 #include <fstream>
+#include <string>
 
 using namespace ppcat::app;
+using namespace ppcat::common;
 using namespace nlohmann;
 namespace filesystem = std::filesystem;
 
-backend::backend(const backend::config &config)
-    : _config(config)
-{
+void backend::define_cli(CLI::App &app, backend::config &config) {
+    app.add_option("-o,--output", config.output, "Ouput rendered file path, if empty then template without extension");
 }
 
 void backend::run() {
-    run_once(filesystem::path{"/tmp/1"});
-}
-
-void backend::run_once(filesystem::path output) {
-    json data = picker{get<picker::config>(_config)}.pick();
+    json data = _picker.pick();
 
     std::ofstream file(output, std::ofstream::out | std::ofstream::trunc);
-    file.exceptions(std::ofstream::failbit | std::ofstream::badbit );
-    applicator{get<applicator::config>(_config)}.apply(file, data);
+    file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+    _applicator.apply(file, data);
 }

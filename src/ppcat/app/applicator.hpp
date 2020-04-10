@@ -1,6 +1,7 @@
 #ifndef APPLICATOR_HPP
 #define APPLICATOR_HPP
 
+#include <CLI/CLI.hpp>
 #include <nlohmann/json.hpp>
 
 #include <string>
@@ -16,6 +17,7 @@ struct applicator {
 
     applicator(const config &config);
 
+    static void define_cli(CLI::App &app, config &config);
     void apply(std::ostream& os, const nlohmann::json &data);
 
 private:

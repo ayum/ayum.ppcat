@@ -1,5 +1,7 @@
-#include "constants.hpp"
 #include "cli.hpp"
+#include "backend.hpp"
+#include "picker.hpp"
+#include "applicator.hpp"
 
 #include <iostream>
 #include <fmt/format.h>
@@ -12,13 +14,13 @@ using namespace ppcat;
 namespace ppcat::app {
 
 int main(int argc, const char * const *argv) {
-    cli app{argc, argv};
+    common::cli::cli<backend, picker, applicator> app{argc, argv};
 
     if (int code = app.parse()) {
         return code;
     }
 
-    if constexpr (common::build_tests) {
+    if constexpr (common::cli::build_tests) {
         if (app.tests()) {
             doctest::Context context;
             context.applyCommandLine(argc, argv);
@@ -27,7 +29,7 @@ int main(int argc, const char * const *argv) {
     }
 
     try {
-        app.run();
+        backend(app.get_config()).run();
     } catch(const std::exception& e) {
         std::cerr << fmt::format("{}", e.what()) << std::endl;
         return 1;

@@ -7,14 +7,14 @@
 #include <string>
 #include <filesystem>
 
-namespace ppcat::cli {
+namespace ppcat::app {
 
 struct picker {
     struct config {
-        std::vector<std::string> files;
+        std::string file;
     };
 
-    picker(const std::filesystem::path &path);
+    picker(const config &config);
 
     nlohmann::json pick();
 

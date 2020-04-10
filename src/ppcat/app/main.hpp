@@ -1,7 +1,7 @@
 #ifndef MAIN_HPP
 #define MAIN_HPP
 
-namespace ppcat::cli {
+namespace ppcat::app {
 
 int main(int argc, const char * const *argv);
 

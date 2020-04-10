@@ -8,13 +8,13 @@
 #include <string_view>
 #include <filesystem>
 
-using namespace ppcat::cli;
+using namespace ppcat::app;
 using namespace ppcat::common;
 using namespace nlohmann;
 namespace filesystem = std::filesystem;
 
-picker::picker(const filesystem::path &path)
-    : path(path)
+picker::picker(const picker::config &config)
+    : path(config.file)
 {
 }
 

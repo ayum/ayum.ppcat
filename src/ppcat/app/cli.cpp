@@ -5,7 +5,7 @@
 #include <CLI/CLI.hpp>
 #include <fmt/format.h>
 
-using namespace ppcat::cli;
+using namespace ppcat::app;
 using namespace ppcat::common;
 using namespace std;
 
@@ -38,10 +38,11 @@ void cli::define() {
         std::cout << std::flush << common::version << std::endl << std::flush;
     }, "Print version");
 
-    app.add_option("-l,--level", _config.get<common::log::config>().log_level, "Log level for logging, equal or severer wil be printed");
-    app.add_option("-f,--file" , _config.get<common::log::config>().log_file , "Log file for logging, stdout if empty");
+    app.add_option("-l,--log-level", _config.get<common::log::config>().log_level, "Log level for logging, equal or severer wil be printed");
+    app.add_option("-f,--log-file" , _config.get<common::log::config>().log_file, "Log file for logging, stdout if empty");
+    app.add_option("-t,--template" , std::get<applicator::config>(_config.get<backend::config>()).templet, "Template to apply to with input files");
 
-    app.add_option("files", std::get<picker::config>(_config.get<backend::config>()).files, "Files to read template parameters from");
+    app.add_option("files", std::get<picker::config>(_config.get<backend::config>()).file, "Files to read template parameters from");
 
     if constexpr (common::build_tests) {
         auto &tests = *app.add_subcommand("tests", "Run tests");

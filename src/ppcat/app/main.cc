@@ -2,5 +2,5 @@
 
 
 int main(int argc, char **argv) {
-    return ppcat::cli::main(argc, argv);
+    return ppcat::app::main(argc, argv);
 }

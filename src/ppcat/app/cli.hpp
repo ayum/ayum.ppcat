@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-namespace ppcat::cli {
+namespace ppcat::app {
 
 using config = ppcat::common::config<ppcat::common::log::config, backend::config>;
 

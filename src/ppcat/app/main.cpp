@@ -9,7 +9,7 @@
 
 using namespace ppcat;
 
-namespace ppcat::cli {
+namespace ppcat::app {
 
 int main(int argc, const char * const *argv) {
     cli app{argc, argv};

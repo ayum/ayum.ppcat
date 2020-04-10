@@ -1,12 +1,12 @@
 #include "constants.hpp"
 #include "cli.hpp"
+#include "logging.hpp"
 
 #include <CLI/CLI.hpp>
-
-//
 #include <fmt/format.h>
 
 using namespace ppcat::cli;
+using namespace ppcat::common;
 using namespace std;
 
 cli::cli(int &argc, const char * const *&argv)
@@ -38,6 +38,9 @@ void cli::define() {
         std::cout << std::flush << common::version << std::endl << std::flush;
     }, "Print version");
 
+    app.add_option("-l,--level", _config.get<common::log::config>().log_level, "Log level for logging, equal or severer wil be printed");
+    app.add_option("-f,--file" , _config.get<common::log::config>().log_file , "Log file for logging, stdout if empty");
+
     app.add_option("files", std::get<picker::config>(_config.get<backend::config>()).files, "Files to read template parameters from");
 
     if constexpr (common::build_tests) {
@@ -57,5 +60,6 @@ bool cli::tests() const {
 
 
 void cli::run() {
+    log::initialize(_config.get<common::log::config>().log_file, _config.get<common::log::config>().log_level);
     backend(_config.get<backend::config>()).run();
 }

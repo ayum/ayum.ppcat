@@ -2,6 +2,7 @@
 #define CLI_HPP
 
 #include "config.hpp"
+#include "logging.hpp"
 #include "backend.hpp"
 
 #include <CLI/CLI.hpp>
@@ -11,7 +12,7 @@
 
 namespace ppcat::cli {
 
-using config = ppcat::common::config<backend::config>;
+using config = ppcat::common::config<ppcat::common::log::config, backend::config>;
 
 struct cli {
     cli(int &argc, const char * const *&argv);

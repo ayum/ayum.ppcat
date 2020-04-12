@@ -21,7 +21,7 @@ struct applicator {
     void apply(std::ostream& os, const nlohmann::json &data);
 
 private:
-    std::filesystem::path path;
+    std::filesystem::path templet;
 };
 
 }

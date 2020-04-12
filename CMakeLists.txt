@@ -14,6 +14,8 @@ add_compile_options($<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-Wal
 # Should be enabled when CLI11 library will support it
 #add_compile_options($<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-fno-rtti>)
 
+include_directories(SYSTEM external)
+
 include(CTest)
 include(FindPkgConfig)
 

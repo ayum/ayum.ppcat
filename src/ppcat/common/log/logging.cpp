@@ -7,8 +7,8 @@
 
 #include <filesystem>
 #include <string>
+#include <stdexcept>
 #include <experimental/source_location>
-
 
 using namespace ppcat::common;
 using namespace std;
@@ -107,4 +107,9 @@ void log::error(string_view msg, const std::experimental::source_location& locat
 
 void log::critical(string_view msg, const std::experimental::source_location& location) {
     log::log(log::level::critical, msg, location);
+}
+
+void log::critical_throw(string_view msg, const std::experimental::source_location& location) {
+    log::log(log::level::critical, msg, location);
+    throw std::runtime_error(std::string(msg));
 }

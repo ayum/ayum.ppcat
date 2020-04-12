@@ -39,6 +39,9 @@ void warning(std::string_view msg, const std::experimental::source_location& loc
 void error(std::string_view msg, const std::experimental::source_location& location = std::experimental::source_location::current());
 void critical(std::string_view msg, const std::experimental::source_location& location = std::experimental::source_location::current());
 
+[[noreturn]]
+void critical_throw(std::string_view msg, const std::experimental::source_location& location = std::experimental::source_location::current());
+
 }
 
 #endif /* LOGGING_HPP */

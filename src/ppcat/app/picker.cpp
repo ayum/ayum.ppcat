@@ -32,7 +32,7 @@ json picker::pick() {
 
     mio::mmap_source mmap(path.string());
 
-    std::regex chunk_re(R"((^([^[:graph:]]*\n)*|([^[:graph:]]*\n){2,}|[^[:graph:]]*$))");
+    std::regex chunk_re(R"((^(\s*\n)*|(\s*\n){2,}|\s*$))");
     for (auto &&it  = std::cregex_token_iterator(mmap.begin(), mmap.end(), chunk_re, -1);
                 it != std::cregex_token_iterator(); ++it) {
         if (it->first == it->second) {
@@ -43,8 +43,8 @@ json picker::pick() {
 
         auto parse = [](std::string_view chunk, json &data, json_pointer<json> &ptr) -> void {
             auto parse_impl = [](auto &parse_ref, std::string_view chunk, json &data, json_pointer<json> &ptr) -> void {
-                std::regex strip_re(R"(^[^[:graph:]]*([\s\S]*?)[^[:graph:]]*$)");
-                std::regex pick_re(R"(^[^[:graph:]]*<(.*?)>(:?)[^[:graph:]]*([\s\S]*))");
+                std::regex strip_re(R"(^\s*([\s\S]*?)\s*$)");
+                std::regex pick_re(R"(^\s*<(.*?)>(:?)\s*([\s\S]*))");
                 std::cmatch match;
 
                 std::regex_match(chunk.begin(), chunk.end(), match, strip_re);

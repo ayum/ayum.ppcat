@@ -24,15 +24,23 @@ struct backend {
     , _applicator{std::get<applicator::config>(config)}
     {
         if (output.empty()) {
-            std::filesystem::path path = std::get<applicator::config>(config).templet;
-            if (path.has_extension()) {
-                path.replace_extension("");
-            } else if (path.empty()) {
-                path = "output";
+            std::filesystem::path templet = std::get<applicator::config>(config).templet;
+            std::filesystem::path input = std::get<picker::config>(config).input;
+            if (templet.empty()) {
+                input.replace_extension(".json");
+                output = input;
             } else {
-                path.replace_extension(".output");
+                if (templet.has_extension()) {
+                    templet.replace_extension("");
+                } else {
+                    templet.replace_extension(".output");
+                }
+                output = templet;
             }
-            output = path;
+        }
+
+        if (not std::get<applicator::config>(config).templet.empty()) {
+            apply = true;
         }
     }
 
@@ -43,7 +51,7 @@ private:
     std::filesystem::path output;
     picker _picker;
     applicator _applicator;
-
+    bool apply = false;
 };
 
 }

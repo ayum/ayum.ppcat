@@ -12,7 +12,7 @@ namespace ppcat::app {
 
 struct picker {
     struct config {
-        std::string file;
+        std::string input;
     };
 
     picker(const config &config);
@@ -21,7 +21,7 @@ struct picker {
     nlohmann::json pick();
 
 private:
-    std::filesystem::path path;
+    std::filesystem::path input;
 };
 
 }

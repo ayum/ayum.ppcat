@@ -19,9 +19,14 @@ void backend::define_cli(CLI::App &app, backend::config &config) {
 }
 
 void backend::run() {
-    json data = _picker.pick();
-
     std::ofstream file(output, std::ofstream::out | std::ofstream::trunc);
     file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
-    _applicator.apply(file, data);
+    json data = _picker.pick();
+
+    if (apply) {
+        _applicator.apply(file, data);
+        return;
+    }
+
+    file << data.dump(2);
 }

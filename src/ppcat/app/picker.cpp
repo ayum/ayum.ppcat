@@ -14,23 +14,23 @@ using namespace nlohmann;
 namespace filesystem = std::filesystem;
 
 picker::picker(const picker::config &config)
-    : path(config.file)
+    : input(config.input)
 {
 }
 
 void picker::define_cli(CLI::App &app, config &config) {
-    app.add_option("files", config.file, "File to read template parameters from");
+    app.add_option("files", config.input, "File to read template parameters from");
 }
 
 json picker::pick() {
-    if (filesystem::is_empty(path)) {
+    if (filesystem::is_empty(input)) {
         return {};
     }
 
     json data;
     json_pointer<json> ptr;
 
-    mio::mmap_source mmap(path.string());
+    mio::mmap_source mmap(input.string());
 
     std::regex chunk_re(R"((^(\s*\n)*|(\s*\n){2,}|\s*$))");
     for (auto &&it  = std::cregex_token_iterator(mmap.begin(), mmap.end(), chunk_re, -1);

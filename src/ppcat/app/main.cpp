@@ -1,7 +1,6 @@
 #include "cli.hpp"
 #include "backend.hpp"
 #include "picker.hpp"
-#include "applicator.hpp"
 
 #include <iostream>
 #include <fmt/format.h>
@@ -14,7 +13,7 @@ using namespace ppcat;
 namespace ppcat::app {
 
 int main(int argc, const char * const *argv) {
-    common::cli::cli<backend, picker, applicator> app{argc, argv};
+    common::cli::cli<backend::backend, backend::picker> app{argc, argv};
 
     if (int code = app.parse()) {
         return code;
@@ -29,7 +28,7 @@ int main(int argc, const char * const *argv) {
     }
 
     try {
-        backend(app.get_config()).run();
+        backend::backend(app.get_config()).run();
     } catch(const std::exception& e) {
         std::cerr << fmt::format("{}", e.what()) << std::endl;
         return 1;

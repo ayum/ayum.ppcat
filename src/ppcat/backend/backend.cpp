@@ -9,7 +9,7 @@
 #include <fstream>
 #include <string>
 
-using namespace ppcat::app;
+using namespace ppcat::backend;
 using namespace ppcat::common;
 using namespace nlohmann;
 namespace filesystem = std::filesystem;
@@ -21,12 +21,7 @@ void backend::define_cli(CLI::App &app, backend::config &config) {
 void backend::run() {
     std::ofstream file(output, std::ofstream::out | std::ofstream::trunc);
     file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+
     json data = _picker.pick();
-
-    if (apply) {
-        _applicator.apply(file, data);
-        return;
-    }
-
     file << data.dump(2);
 }

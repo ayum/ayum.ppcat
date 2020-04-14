@@ -8,7 +8,7 @@
 #include <string_view>
 #include <filesystem>
 
-using namespace ppcat::app;
+using namespace ppcat::backend;
 using namespace ppcat::common;
 using namespace nlohmann;
 namespace filesystem = std::filesystem;
@@ -19,7 +19,7 @@ picker::picker(const picker::config &config)
 }
 
 void picker::define_cli(CLI::App &app, config &config) {
-    app.add_option("files", config.input, "File to read template parameters from");
+    app.add_option("file", config.input, "File to read template parameters from")->required();
 }
 
 json picker::pick() {

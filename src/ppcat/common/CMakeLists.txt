@@ -1,9 +1,6 @@
 add_library(common OBJECT
-    cli/cli.cpp
-    log/logging.cpp)
-target_sources(common PUBLIC
-    cli/cli.hpp
-    log/logging.hpp
+    cli/cli.cpp cli/cli.hpp
+    log/logging.cpp log/logging.hpp
 )
 
 target_include_directories(common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/log ${CMAKE_CURRENT_SOURCE_DIR}/cli)

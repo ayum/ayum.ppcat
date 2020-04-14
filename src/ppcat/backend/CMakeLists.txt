@@ -1,0 +1,25 @@
+add_library(backend OBJECT
+    picker.cpp picker.hpp picker.test.cpp
+    backend.cpp backend.hpp backend.test.cpp
+)
+
+target_include_directories(backend INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(backend PRIVATE common)
+
+find_package(CLI11 CONFIG REQUIRED)
+target_link_libraries(backend PRIVATE CLI11::CLI11)
+
+find_package(mio CONFIG REQUIRED)
+target_link_libraries(backend PRIVATE mio::mio mio::mio_base)
+
+find_package(nlohmann_json CONFIG REQUIRED)
+target_link_libraries(backend PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
+
+find_package(fmt CONFIG REQUIRED)
+target_link_libraries(backend PRIVATE fmt::fmt fmt::fmt-header-only)
+
+if(BUILD_TESTING)
+find_package(doctest CONFIG REQUIRED)
+target_link_libraries(backend PRIVATE doctest::doctest)
+endif()

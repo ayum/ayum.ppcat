@@ -8,7 +8,7 @@
 #include <string>
 #include <filesystem>
 
-namespace ppcat::app {
+namespace ppcat::backend {
 
 struct picker {
     struct config {
@@ -25,6 +25,5 @@ private:
 };
 
 }
-
 
 #endif // PICKER_HPP

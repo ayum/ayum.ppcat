@@ -1,6 +1,5 @@
 #include "cli.hpp"
 #include "backend.hpp"
-#include "picker.hpp"
 
 #include <iostream>
 #include <fmt/format.h>
@@ -13,7 +12,7 @@ using namespace ppcat;
 namespace ppcat::app {
 
 int main(int argc, const char * const *argv) {
-    common::cli::cli<backend::backend, backend::picker> app{argc, argv};
+    common::cli::cli<backend::backend::backend_types> app{argc, argv};
 
     if (int code = app.parse()) {
         return code;

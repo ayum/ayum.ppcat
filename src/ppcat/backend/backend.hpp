@@ -16,6 +16,8 @@ struct backend {
         std::string output;
     };
 
+    using backend_types = std::tuple<backend, picker>;
+
     template<typename C>
     backend(const C &config)
     : output{std::filesystem::path{std::get<backend::config>(config).output}}

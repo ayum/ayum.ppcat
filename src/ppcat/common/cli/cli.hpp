@@ -21,8 +21,11 @@ constexpr std::string_view version = PROJECT_VERSION;
 constexpr std::string_view description = PROJECT_DESCRIPTION;
 constexpr bool build_tests = PROJECT_BUILD_TESTS;
 
+template<typename X>
+struct cli;
+
 template <typename ...T>
-struct cli {
+struct cli<std::tuple<T...>> {
     template<typename S>
     using config_type = S::config;
 

@@ -13,6 +13,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_compile_options($<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-Wall\;-Wextra\;-Werror>)
 # Should be enabled when CLI11 library will support it
 #add_compile_options($<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-fno-rtti>)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include_directories(SYSTEM external)
 
@@ -23,4 +24,10 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "/opt/papercat" CACHE PATH "..." FORCE)
 endif()
 
+set(CMAKE_JS_BUILD OFF)
+if(CMAKE_JS_VERSION)
+    set(CMAKE_JS_BUILD ON)
+endif()
+set(BUILD_APP ON CACHE BOOL "Build command line application")
+set(BUILD_NAPI ${CMAKE_JS_BUILD} CACHE BOOL "Build node napi addon")
 add_subdirectory(src)

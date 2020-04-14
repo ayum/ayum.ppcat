@@ -1,0 +1,17 @@
+{
+  "name": "ppcat",
+  "version": "0.0.0",
+  "description": "Papercat typesetting workflow napi node addon",
+  "main": "src/ppca/napi/hello.js",
+  "private": true,
+  "dependencies": {
+    "bindings": "~1.2.1"
+  },
+  "scripts": {
+    "install": "cmake-js compile",
+    "test": "node hello.js"
+  },
+  "devDependencies": {
+    "cmake-js": "^6.1.0"
+  }
+}

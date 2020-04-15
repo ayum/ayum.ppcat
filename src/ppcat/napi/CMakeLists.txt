@@ -1,3 +1,8 @@
+if(CMAKE_JS_VERSION)
+else()
+    return()
+endif()
+
 add_library(napi SHARED)
 set_target_properties(napi PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 set_target_properties(napi PROPERTIES PREFIX "" SUFFIX ".node")

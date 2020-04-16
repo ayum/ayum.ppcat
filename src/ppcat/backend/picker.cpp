@@ -68,6 +68,7 @@ json picker::pick(std::string_view input) {
                                 data[ptr][std::string(key)] = "";
                             } else {
                                 data[ptr][std::string(key)] = tail;
+                                tail = {};
                             }
                         }
                     } else {

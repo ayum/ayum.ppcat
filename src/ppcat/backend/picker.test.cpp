@@ -29,4 +29,16 @@ TEST_CASE("picker text parsing") {
         };
         CHECK(picker.pick(input) == output);
     }
+    SUBCASE("multiline value") {
+        std::string_view input(R"(
+<ключ>:
+строка 1
+строка 2)"
+        );
+
+        json output = {
+            {"ключ", "строка 1\nстрока 2"}
+        };
+        CHECK(picker.pick(input) == output);
+    }
 }

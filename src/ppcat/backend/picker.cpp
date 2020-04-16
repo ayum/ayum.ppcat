@@ -1,7 +1,6 @@
 #include "picker.hpp"
 #include "logging.hpp"
 
-#include <mio/mmap.hpp>
 #include <fmt/format.h>
 
 #include <regex>
@@ -13,27 +12,21 @@ using namespace ppcat::common;
 using namespace nlohmann;
 namespace filesystem = std::filesystem;
 
-picker::picker(const picker::config &config)
-    : input(config.input)
-{
+picker::picker(const picker::config &config) {
+    (void)config;
 }
 
 void picker::define_cli(CLI::App &app, config &config) {
-    app.add_option("file", config.input, "File to read template parameters from")->required();
+    (void)app;
+    (void)config;
 }
 
-json picker::pick() {
-    if (filesystem::is_empty(input)) {
-        return {};
-    }
-
+json picker::pick(std::string_view input) {
     json data;
     json_pointer<json> ptr;
 
-    mio::mmap_source mmap(input.string());
-
     std::regex chunk_re(R"((^(\s*\n)*|(\s*\n){2,}|\s*$))");
-    for (auto &&it  = std::cregex_token_iterator(mmap.begin(), mmap.end(), chunk_re, -1);
+    for (auto &&it  = std::cregex_token_iterator(input.begin(), input.end(), chunk_re, -1);
                 it != std::cregex_token_iterator(); ++it) {
         if (it->first == it->second) {
             continue;
@@ -44,7 +37,7 @@ json picker::pick() {
         auto parse = [](std::string_view chunk, json &data, json_pointer<json> &ptr) -> void {
             auto parse_impl = [](auto &parse_ref, std::string_view chunk, json &data, json_pointer<json> &ptr) -> void {
                 std::regex strip_re(R"(^\s*([\s\S]*?)\s*$)");
-                std::regex pick_re(R"(^\s*<(.*?)>(:?)\s*([\s\S]*))");
+                std::regex pick_re(R"(^\s*<(.*?)>(:?)[^\S\n]*(.*)\n?([\s\S]*))");
                 std::cmatch match;
 
                 std::regex_match(chunk.begin(), chunk.end(), match, strip_re);
@@ -61,13 +54,21 @@ json picker::pick() {
                     std::string_view key{match[1].first, match[1].second};
                     std::string_view colon{match[2].first, match[2].second};
                     std::string_view value{match[3].first, match[3].second};
-                    log::trace(fmt::format("Match:\nkey='{}'\ncolon='{}'\nvalue='{}'", key, colon, value));
-                    bool nested = std::regex_match(value.begin(), value.end(), match, pick_re);
+                    std::string_view tail{match[4].first, match[4].second};
+                    log::trace(fmt::format("Match:\nkey='{}'\ncolon='{}'\nvalue='{}'\ntail='{}'", key, colon, value, tail));
+                    if (colon.empty() && not value.empty()) {
+                        log::critical_throw("Non empy same line tag value without colon. Examine under trace.");
+                    }
+                    bool nested = std::regex_match(tail.begin(), tail.end(), match, pick_re);
                     if (not colon.empty()) {
-                        if (nested) {
-                            data[ptr][std::string(key)] = "";
-                        } else {
+                        if (not value.empty()) {
                             data[ptr][std::string(key)] = value;
+                        } else {
+                            if (nested) {
+                                data[ptr][std::string(key)] = "";
+                            } else {
+                                data[ptr][std::string(key)] = tail;
+                            }
                         }
                     } else {
                         json_pointer p = ptr;
@@ -84,8 +85,8 @@ json picker::pick() {
                             ptr /= 0;
                         }
                     }
-                    if (nested) {
-                        parse_ref(parse_ref, value, data, ptr);
+                    if (not tail.empty()) {
+                        parse_ref(parse_ref, tail, data, ptr);
                     }
                 }
                 log::trace(fmt::format("Data:\njson='{}'", data.dump()));

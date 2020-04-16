@@ -4,24 +4,19 @@
 #include <nlohmann/json.hpp>
 #include <CLI/CLI.hpp>
 
-#include <vector>
-#include <string>
+#include <string_view>
 #include <filesystem>
 
 namespace ppcat::backend {
 
 struct picker {
     struct config {
-        std::string input;
     };
 
     picker(const config &config);
 
     static void define_cli(CLI::App &app, config &config);
-    nlohmann::json pick();
-
-private:
-    std::filesystem::path input;
+    nlohmann::json pick(std::string_view input);
 };
 
 }

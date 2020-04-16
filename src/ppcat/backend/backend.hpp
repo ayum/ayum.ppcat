@@ -14,6 +14,7 @@ namespace ppcat::backend {
 struct backend {
     struct config {
         std::string output;
+        std::string input;
     };
 
     using backend_types = std::tuple<backend, picker>;
@@ -21,12 +22,12 @@ struct backend {
     template<typename C>
     backend(const C &config)
     : output{std::filesystem::path{std::get<backend::config>(config).output}}
+    , input{std::filesystem::path{std::get<backend::config>(config).input}}
     , _picker{std::get<picker::config>(config)}
     {
         if (output.empty()) {
-            std::filesystem::path input = std::get<picker::config>(config).input;
-            input.replace_extension(".json");
             output = input;
+            output.replace_extension(".json");
         }
     }
 
@@ -35,6 +36,7 @@ struct backend {
 
 private:
     std::filesystem::path output;
+    std::filesystem::path input;
     picker _picker;
 };
 

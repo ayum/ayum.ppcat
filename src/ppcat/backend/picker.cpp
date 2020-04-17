@@ -2,6 +2,7 @@
 #include "logging.hpp"
 
 #include <fmt/format.h>
+#include <unicode/unistr.h>
 
 #include <regex>
 #include <string_view>
@@ -16,7 +17,7 @@ namespace {
 
 std::string make_slug(std::string_view input) {
     std::regex strip_re(R"(^\s*([\s\S]*?)\s*$)");
-    std::regex whitespace_re(R"(\s)");
+    std::regex whitespace_re(R"(\s+)");
     std::cmatch match;
 
     std::regex_match(input.begin(), input.end(), match, strip_re);
@@ -26,8 +27,14 @@ std::string make_slug(std::string_view input) {
         input = {match[1].first, match[1].second};
     }
 
+    icu::UnicodeString uinput{input.data(), static_cast<int32_t>(input.length()), "UTF-8"};
+    uinput.toLower();
+
+    std::string lower;
+    uinput.toUTF8String(lower);
+
     std::stringstream ss;
-    std::regex_replace(std::ostreambuf_iterator(ss), input.begin(), input.end(), whitespace_re, "_");
+    std::regex_replace(std::ostreambuf_iterator(ss), lower.begin(), lower.end(), whitespace_re, "_");
 
     return ss.str();
 }

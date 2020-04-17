@@ -43,13 +43,13 @@ TEST_CASE("picker text parsing") {
     }
     SUBCASE("slug key") {
         std::string_view input(R"(
-<ключ 1 >:
+<клюЧ 1  ΣσςΣ >:
 строка 1
 строка 2)"
         );
 
         json output = {
-            {"ключ_1", "строка 1\nстрока 2"}
+            {"ключ_1_σσςς", "строка 1\nстрока 2"}
         };
         CHECK(picker.pick(input) == output);
     }

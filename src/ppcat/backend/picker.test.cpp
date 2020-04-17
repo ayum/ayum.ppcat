@@ -41,4 +41,16 @@ TEST_CASE("picker text parsing") {
         };
         CHECK(picker.pick(input) == output);
     }
+    SUBCASE("slug key") {
+        std::string_view input(R"(
+<ключ 1 >:
+строка 1
+строка 2)"
+        );
+
+        json output = {
+            {"ключ_1", "строка 1\nстрока 2"}
+        };
+        CHECK(picker.pick(input) == output);
+    }
 }

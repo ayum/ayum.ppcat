@@ -12,6 +12,28 @@ using namespace ppcat::common;
 using namespace nlohmann;
 namespace filesystem = std::filesystem;
 
+namespace {
+
+std::string make_slug(std::string_view input) {
+    std::regex strip_re(R"(^\s*([\s\S]*?)\s*$)");
+    std::regex whitespace_re(R"(\s)");
+    std::cmatch match;
+
+    std::regex_match(input.begin(), input.end(), match, strip_re);
+    if (match.empty()) {
+        log::warning(fmt::format("No match when stripping when sluggify '{}'", input));
+    } else {
+        input = {match[1].first, match[1].second};
+    }
+
+    std::stringstream ss;
+    std::regex_replace(std::ostreambuf_iterator(ss), input.begin(), input.end(), whitespace_re, "_");
+
+    return ss.str();
+}
+
+}
+
 picker::picker(const picker::config &config) {
     (void)config;
 }
@@ -51,7 +73,7 @@ json picker::pick(std::string_view input) {
                 if (match.empty()) {
                     data[ptr]["default"].push_back(chunk);
                 } else {
-                    std::string_view key{match[1].first, match[1].second};
+                    std::string key = make_slug({match[1].first, match[1].second});
                     std::string_view colon{match[2].first, match[2].second};
                     std::string_view value{match[3].first, match[3].second};
                     std::string_view tail{match[4].first, match[4].second};
@@ -62,12 +84,12 @@ json picker::pick(std::string_view input) {
                     bool nested = std::regex_match(tail.begin(), tail.end(), match, pick_re);
                     if (not colon.empty()) {
                         if (not value.empty()) {
-                            data[ptr][std::string(key)] = value;
+                            data[ptr][key] = value;
                         } else {
                             if (nested) {
-                                data[ptr][std::string(key)] = "";
+                                data[ptr][key] = "";
                             } else {
-                                data[ptr][std::string(key)] = tail;
+                                data[ptr][key] = tail;
                                 tail = {};
                             }
                         }
@@ -81,7 +103,7 @@ json picker::pick(std::string_view input) {
                             }
                         }
                         if (p.empty()) {
-                            ptr /= std::string{key};
+                            ptr /= key;
                             data[ptr] = json::array();
                             ptr /= 0;
                         }

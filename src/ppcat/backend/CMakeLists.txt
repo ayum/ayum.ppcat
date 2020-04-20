@@ -19,15 +19,8 @@ target_link_libraries(backend PRIVATE nlohmann_json nlohmann_json::nlohmann_json
 find_package(fmt CONFIG REQUIRED)
 target_link_libraries(backend PRIVATE fmt::fmt fmt::fmt-header-only)
 
-find_path(ICU_INCLUDE_PATH unistr.h PATH_SUFFIXES unicode)
-find_path(ICU_LIBRARY_PATH libicuuc.a PATH_SUFFIXES lib lib64 lib32)
-if(ICU_INCLUDE_PATH AND ICU_LIBRARY_PATH)
-target_include_directories(backend PRIVATE "${ICU_INCLUDE_PATH}")
-target_link_directories(backend INTERFACE "${ICU_LIBRARY_PATH}")
-target_link_libraries(backend PRIVATE icuuc dl icudata)
-else()
-message(FATAL_ERROR "ICU library not found")
-endif()
+find_package(ICU COMPONENTS uc data REQUIRED)
+target_link_libraries(backend PUBLIC ICU::uc ICU::data)
 
 if(BUILD_TESTING)
 find_package(doctest CONFIG REQUIRED)

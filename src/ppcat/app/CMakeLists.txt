@@ -3,11 +3,11 @@ set_target_properties(app PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 target_sources(app PRIVATE
     main.cc
     main.cpp main.hpp main.test.cpp
-    backend.cpp backend.hpp backend.test.cpp
+    frontend.cpp frontend.hpp frontend.test.cpp
 )
 
 target_link_libraries(app PRIVATE common)
-target_link_libraries(app PRIVATE picker)
+target_link_libraries(app PRIVATE backend)
 
 find_package(CLI11 CONFIG REQUIRED)
 target_link_libraries(app PRIVATE CLI11::CLI11)

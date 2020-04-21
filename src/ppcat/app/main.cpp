@@ -1,5 +1,5 @@
 #include "cli.hpp"
-#include "backend.hpp"
+#include "frontend.hpp"
 
 #include <iostream>
 #include <fmt/format.h>
@@ -12,7 +12,7 @@ using namespace ppcat;
 namespace ppcat::app {
 
 int main(int argc, const char * const *argv) {
-    common::cli::cli<backend::backend::backend_types> app{argc, argv};
+    common::cli::cli<frontend::frontend_types> app{argc, argv};
 
     if (int code = app.parse()) {
         return code;
@@ -27,7 +27,7 @@ int main(int argc, const char * const *argv) {
     }
 
     try {
-        backend::backend(app.get_config()).run();
+        frontend(app.get_config()).run();
     } catch(const std::exception& e) {
         std::cerr << fmt::format("{}", e.what()) << std::endl;
         return 1;

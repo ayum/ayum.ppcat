@@ -1,5 +1,5 @@
-#ifndef BACKEND_HPP
-#define BACKEND_HPP
+#ifndef FRONTEND_HPP
+#define FRONTEND_HPP
 
 #include "picker.hpp"
 
@@ -9,21 +9,21 @@
 #include <tuple>
 #include <filesystem>
 
-namespace ppcat::backend {
+namespace ppcat::app {
 
-struct backend {
+struct frontend {
     struct config {
         std::string output;
         std::string input;
     };
 
-    using backend_types = std::tuple<backend, picker>;
+    using frontend_types = std::tuple<frontend, ppcat::backend::picker>;
 
     template<typename C>
-    backend(const C &config)
-    : output{std::filesystem::path{std::get<backend::config>(config).output}}
-    , input{std::filesystem::path{std::get<backend::config>(config).input}}
-    , _picker{std::get<picker::config>(config)}
+    frontend(const C &config)
+    : output{std::filesystem::path{std::get<frontend::config>(config).output}}
+    , input{std::filesystem::path{std::get<frontend::config>(config).input}}
+    , _picker{std::get<ppcat::backend::picker::config>(config)}
     {
         if (output.empty()) {
             output = input;
@@ -37,10 +37,10 @@ struct backend {
 private:
     std::filesystem::path output;
     std::filesystem::path input;
-    picker _picker;
+    ppcat::backend::picker _picker;
 };
 
 }
 
 
-#endif // BACKEND_HPP
+#endif // FRONTEND_HPP

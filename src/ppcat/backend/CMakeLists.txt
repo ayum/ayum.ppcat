@@ -1,4 +1,4 @@
-add_library(backend OBJECT
+add_library(backend STATIC
     picker.cpp picker.hpp picker.test.cpp
     backend.cpp backend.hpp backend.test.cpp
 )
@@ -20,7 +20,7 @@ find_package(fmt CONFIG REQUIRED)
 target_link_libraries(backend PRIVATE fmt::fmt fmt::fmt-header-only)
 
 find_package(ICU COMPONENTS uc data REQUIRED)
-target_link_libraries(backend PUBLIC ICU::uc ICU::data)
+target_link_libraries(backend PRIVATE ICU::uc ICU::data)
 
 if(BUILD_TESTING)
 find_package(doctest CONFIG REQUIRED)

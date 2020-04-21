@@ -13,3 +13,6 @@ _deps
 
 # Build directory
 build
+
+# NPM
+node_modules

@@ -1,4 +1,4 @@
-add_library(common OBJECT
+add_library(common STATIC
     cli/cli.cpp cli/cli.hpp
     log/logging.cpp log/logging.hpp
 )
@@ -6,7 +6,7 @@ add_library(common OBJECT
 target_include_directories(common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/log ${CMAKE_CURRENT_SOURCE_DIR}/cli)
 
 find_package(spdlog CONFIG REQUIRED)
-target_link_libraries(common PUBLIC spdlog::spdlog spdlog::spdlog_header_only)
+target_link_libraries(common PRIVATE spdlog::spdlog_header_only)
 
 find_package(fmt CONFIG REQUIRED)
 target_link_libraries(common PRIVATE fmt::fmt fmt::fmt-header-only)

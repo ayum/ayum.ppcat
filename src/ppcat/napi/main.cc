@@ -4,8 +4,8 @@
 #include <string_view>
 
 static Napi::Value ppcat(const Napi::CallbackInfo& info) {
-    (void)info;
-    return {};
+    Napi::Value ret = info[0];
+    return ret;
 }
 
 static Napi::Object Init(Napi::Env env, Napi::Object exports) {

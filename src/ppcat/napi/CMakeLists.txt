@@ -12,7 +12,7 @@ target_sources(napi PRIVATE
 )
 
 target_link_libraries(app PRIVATE common)
-target_link_libraries(app PRIVATE backend)
+target_link_libraries(app PRIVATE picker)
 
 execute_process(COMMAND node -p "require('node-addon-api').include"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}

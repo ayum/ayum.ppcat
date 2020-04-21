@@ -11,8 +11,8 @@ target_sources(napi PRIVATE
     ${CMAKE_JS_SRC}
 )
 
-target_link_libraries(app PRIVATE common)
-target_link_libraries(app PRIVATE picker)
+target_link_libraries(napi PRIVATE common)
+target_link_libraries(napi PRIVATE backend)
 
 execute_process(COMMAND node -p "require('node-addon-api').include"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}

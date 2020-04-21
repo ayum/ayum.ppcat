@@ -1,0 +1,52 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "cmake-js: build release",
+            "type": "shell",
+            "command": "${workspaceFolder}/node_modules/.bin/cmake-js",
+            "args": [
+                "build",
+                "-d",
+                "${workspaceFolder}",
+                "-O",
+                "${workspaceFolder}/build/napi/release",
+                "--CDCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/build/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "--cxx=g++-10",
+                "--cc=gcc-10"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "cmake-js: build debug",
+            "type": "shell",
+            "command": "${workspaceFolder}/node_modules/.bin/cmake-js",
+            "args": [
+                "build",
+                "-D",
+                "-d",
+                "${workspaceFolder}",
+                "-O",
+                "${workspaceFolder}/build/napi/debug",
+                "--CDCMAKE_TOOLCHAIN_FILE=${workspaceFolder}/build/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "--cxx=g++-10",
+                "--cc=gcc-10"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        }
+    ]
+}

@@ -6,8 +6,8 @@ target_sources(app PRIVATE
     frontend.cpp frontend.hpp frontend.test.cpp
 )
 
-target_link_libraries(app PRIVATE common)
-target_link_libraries(app PRIVATE backend)
+target_link_libraries(app PRIVATE "-Wl,--whole-archive" common "-Wl,--no-whole-archive")
+target_link_libraries(app PRIVATE "-Wl,--whole-archive" backend "-Wl,--no-whole-archive")
 
 find_package(CLI11 CONFIG REQUIRED)
 target_link_libraries(app PRIVATE CLI11::CLI11)

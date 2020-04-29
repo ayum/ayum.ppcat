@@ -21,6 +21,9 @@ target_link_libraries(backend PRIVATE ICU::uc ICU::data)
 find_package(nlohmann_json CONFIG REQUIRED)
 target_link_libraries(backend PUBLIC nlohmann_json nlohmann_json::nlohmann_json)
 
+find_package(pegtl CONFIG REQUIRED)
+target_link_libraries(backend PRIVATE taocpp::pegtl)
+
 if(BUILD_TESTING)
 find_package(doctest CONFIG REQUIRED)
 target_link_libraries(backend PRIVATE doctest::doctest)

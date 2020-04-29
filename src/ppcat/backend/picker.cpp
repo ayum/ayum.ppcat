@@ -3,10 +3,12 @@
 
 #include <fmt/format.h>
 #include <unicode/unistr.h>
+#include <tao/pegtl.hpp>
+#include <tao/pegtl/contrib/icu/utf8.hpp>
 
+#include <filesystem>
 #include <regex>
 #include <string_view>
-#include <filesystem>
 
 using namespace ppcat::backend;
 using namespace ppcat::common;
@@ -22,32 +24,34 @@ std::string make_slug(std::string_view input) {
 
     std::regex_match(input.begin(), input.end(), match, strip_re);
     if (match.empty()) {
-        log::warning(fmt::format("No match when stripping when sluggify '{}'", input));
+        log::warning(
+            fmt::format("No match when stripping when sluggify '{}'", input));
     } else {
         input = {match[1].first, match[1].second};
     }
 
-    icu::UnicodeString uinput{input.data(), static_cast<int32_t>(input.length()), "UTF-8"};
+    icu::UnicodeString uinput{input.data(),
+                              static_cast<int32_t>(input.length()), "UTF-8"};
     uinput.toLower();
 
     std::string lower;
     uinput.toUTF8String(lower);
 
     std::stringstream ss;
-    std::regex_replace(std::ostreambuf_iterator(ss), lower.begin(), lower.end(), whitespace_re, "_");
+    std::regex_replace(std::ostreambuf_iterator(ss), lower.begin(), lower.end(),
+                       whitespace_re, "_");
 
     return ss.str();
 }
 
-}
+}  // namespace
 
-picker::picker(const picker::config &config) {
-    (void)config;
-}
+picker::picker(const picker::config &config)
+    : buffer_size(config.buffer_size) {}
 
 void picker::define_cli(CLI::App &app, config &config) {
-    (void)app;
-    (void)config;
+    app.add_option("-b,--buffer-size", config.buffer_size,
+                   "Buffer size when parsing large inputs");
 }
 
 json picker::pick(std::string_view input) {
@@ -55,23 +59,28 @@ json picker::pick(std::string_view input) {
     json_pointer<json> ptr;
 
     std::regex chunk_re(R"((^(\s*\n)*|(\s*\n){2,}|\s*$))");
-    for (auto &&it  = std::cregex_token_iterator(input.begin(), input.end(), chunk_re, -1);
-                it != std::cregex_token_iterator(); ++it) {
+    for (auto &&it = std::cregex_token_iterator(input.begin(), input.end(),
+                                                chunk_re, -1);
+         it != std::cregex_token_iterator(); ++it) {
         if (it->first == it->second) {
             continue;
         }
         std::string_view chunk{it->first, it->second};
         log::trace(fmt::format("Chunk:\n'{}'", chunk));
 
-        auto parse = [](std::string_view chunk, json &data, json_pointer<json> &ptr) -> void {
-            auto parse_impl = [](auto &parse_ref, std::string_view chunk, json &data, json_pointer<json> &ptr) -> void {
+        auto parse = [](std::string_view chunk, json &data,
+                        json_pointer<json> &ptr) -> void {
+            auto parse_impl = [](auto &parse_ref, std::string_view chunk,
+                                 json &data, json_pointer<json> &ptr) -> void {
                 std::regex strip_re(R"(^\s*([\s\S]*?)\s*$)");
-                std::regex pick_re(R"(^\s*<(.*?)>(:?)[^\S\n]*(.*)\n?([\s\S]*))");
+                std::regex pick_re(
+                    R"(^\s*<(.*?)>(:?)[^\S\n]*(.*)\n?([\s\S]*))");
                 std::cmatch match;
 
                 std::regex_match(chunk.begin(), chunk.end(), match, strip_re);
                 if (match.empty()) {
-                    log::warning(fmt::format("No match when stripping chunk '{}'", chunk));
+                    log::warning(fmt::format(
+                        "No match when stripping chunk '{}'", chunk));
                 } else {
                     chunk = {match[1].first, match[1].second};
                 }
@@ -80,15 +89,21 @@ json picker::pick(std::string_view input) {
                 if (match.empty()) {
                     data[ptr]["default"].push_back(chunk);
                 } else {
-                    std::string key = make_slug({match[1].first, match[1].second});
+                    std::string key =
+                        make_slug({match[1].first, match[1].second});
                     std::string_view colon{match[2].first, match[2].second};
                     std::string_view value{match[3].first, match[3].second};
                     std::string_view tail{match[4].first, match[4].second};
-                    log::trace(fmt::format("Match:\nkey='{}'\ncolon='{}'\nvalue='{}'\ntail='{}'", key, colon, value, tail));
+                    log::trace(fmt::format(
+                        "Match:\nkey='{}'\ncolon='{}'\nvalue='{}'\ntail='{}'",
+                        key, colon, value, tail));
                     if (colon.empty() && not value.empty()) {
-                        log::critical_throw("Non empy same line tag value without colon. Examine under trace.");
+                        log::critical_throw(
+                            "Non empy same line tag value without colon. "
+                            "Examine under trace.");
                     }
-                    bool nested = std::regex_match(tail.begin(), tail.end(), match, pick_re);
+                    bool nested = std::regex_match(tail.begin(), tail.end(),
+                                                   match, pick_re);
                     if (not colon.empty()) {
                         if (not value.empty()) {
                             data[ptr][key] = value;
@@ -127,4 +142,56 @@ json picker::pick(std::string_view input) {
     }
 
     return data;
+}
+
+namespace ppcat::backend::internal {
+
+struct u8istream : std::basic_istream<char8_t> {
+    u8istream(std::istream &&istream) {
+        set_rdbuf(
+            reinterpret_cast<std::basic_streambuf<char8_t> *>(istream.rdbuf()));
+        istream.rdbuf(nullptr);
+    }
+};
+
+using namespace tao::pegtl;
+
+struct leftangle : one<'<'> {};
+struct rightangle : one<'>'> {};
+struct linebreak : utf8::one<U'\u000a', U'\u000c', U'\u2028', U'\u2029'> {};
+struct whitespace : seq<not_at<linebreak>, utf8::icu::white_space> {};
+struct character : seq<not_at<linebreak>, utf8::any> {};
+struct emptyline : seq<star<whitespace>, linebreak> {};
+struct tagcontent : until<at<rightangle>, must<character>> {};
+struct tag : seq<leftangle, must<tagcontent>, utf8::any> {
+    using content = tagcontent;
+};
+struct rule : pad<tag, whitespace> {};
+struct rulelist : until<eof, sor<rule, emptyline>> {};
+
+struct state {};
+
+template <typename R>
+struct action : tao::pegtl::nothing<R> {};
+
+template <>
+struct action<tag::content> {
+    template <typename I>
+    static void apply(const I &in, state &s) {
+        std::string key{in.iterator().data, in.input().current()};
+        std::cout << fmt::format("======== {}\n", key);
+        (void)s;
+    }
+};
+
+}  // namespace ppcat::backend::internal
+
+json picker::pick(std::istream &input) {
+    using namespace tao;
+
+    internal::state state;
+    pegtl::istream_input istream{input, buffer_size, ""};
+    parse<internal::rulelist, internal::action>(istream, state);
+
+    return {};
 }

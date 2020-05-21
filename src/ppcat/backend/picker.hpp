@@ -22,7 +22,14 @@ struct picker {
     nlohmann::json pick(std::string_view input);
     nlohmann::json pick(std::istream &input);
 
-   private:
+private:
+    template <typename I, typename T>
+    T parse_input(I input);
+
+    template <typename I, typename T>
+    nlohmann::json pick(I input);
+
+private:
     std::size_t buffer_size;
 };
 

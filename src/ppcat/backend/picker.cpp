@@ -2,6 +2,9 @@
 #include "logging.hpp"
 
 #include <fmt/format.h>
+#include <unicode/errorcode.h>
+#include <unicode/normalizer2.h>
+#include <unicode/translit.h>
 #include <unicode/unistr.h>
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/contrib/icu/utf8.hpp>
@@ -9,42 +12,12 @@
 #include <filesystem>
 #include <regex>
 #include <string_view>
+#include <utility>
 
 using namespace ppcat::backend;
 using namespace ppcat::common;
 using namespace nlohmann;
 namespace filesystem = std::filesystem;
-
-namespace {
-
-std::string make_slug(std::string_view input) {
-    std::regex strip_re(R"(^\s*([\s\S]*?)\s*$)");
-    std::regex whitespace_re(R"(\s+)");
-    std::cmatch match;
-
-    std::regex_match(input.begin(), input.end(), match, strip_re);
-    if (match.empty()) {
-        log::warning(
-            fmt::format("No match when stripping when sluggify '{}'", input));
-    } else {
-        input = {match[1].first, match[1].second};
-    }
-
-    icu::UnicodeString uinput{input.data(),
-                              static_cast<int32_t>(input.length()), "UTF-8"};
-    uinput.toLower();
-
-    std::string lower;
-    uinput.toUTF8String(lower);
-
-    std::stringstream ss;
-    std::regex_replace(std::ostreambuf_iterator(ss), lower.begin(), lower.end(),
-                       whitespace_re, "_");
-
-    return ss.str();
-}
-
-}  // namespace
 
 picker::picker(const picker::config &config)
     : buffer_size(config.buffer_size) {}
@@ -54,144 +27,226 @@ void picker::define_cli(CLI::App &app, config &config) {
                    "Buffer size when parsing large inputs");
 }
 
-json picker::pick(std::string_view input) {
-    json data;
-    json_pointer<json> ptr;
-
-    std::regex chunk_re(R"((^(\s*\n)*|(\s*\n){2,}|\s*$))");
-    for (auto &&it = std::cregex_token_iterator(input.begin(), input.end(),
-                                                chunk_re, -1);
-         it != std::cregex_token_iterator(); ++it) {
-        if (it->first == it->second) {
-            continue;
-        }
-        std::string_view chunk{it->first, it->second};
-        log::trace(fmt::format("Chunk:\n'{}'", chunk));
-
-        auto parse = [](std::string_view chunk, json &data,
-                        json_pointer<json> &ptr) -> void {
-            auto parse_impl = [](auto &parse_ref, std::string_view chunk,
-                                 json &data, json_pointer<json> &ptr) -> void {
-                std::regex strip_re(R"(^\s*([\s\S]*?)\s*$)");
-                std::regex pick_re(
-                    R"(^\s*<(.*?)>(:?)[^\S\n]*(.*)\n?([\s\S]*))");
-                std::cmatch match;
-
-                std::regex_match(chunk.begin(), chunk.end(), match, strip_re);
-                if (match.empty()) {
-                    log::warning(fmt::format(
-                        "No match when stripping chunk '{}'", chunk));
-                } else {
-                    chunk = {match[1].first, match[1].second};
-                }
-
-                std::regex_match(chunk.begin(), chunk.end(), match, pick_re);
-                if (match.empty()) {
-                    data[ptr]["default"].push_back(chunk);
-                } else {
-                    std::string key =
-                        make_slug({match[1].first, match[1].second});
-                    std::string_view colon{match[2].first, match[2].second};
-                    std::string_view value{match[3].first, match[3].second};
-                    std::string_view tail{match[4].first, match[4].second};
-                    log::trace(fmt::format(
-                        "Match:\nkey='{}'\ncolon='{}'\nvalue='{}'\ntail='{}'",
-                        key, colon, value, tail));
-                    if (colon.empty() && not value.empty()) {
-                        log::critical_throw(
-                            "Non empy same line tag value without colon. "
-                            "Examine under trace.");
-                    }
-                    bool nested = std::regex_match(tail.begin(), tail.end(),
-                                                   match, pick_re);
-                    if (not colon.empty()) {
-                        if (not value.empty()) {
-                            data[ptr][key] = value;
-                        } else {
-                            if (nested) {
-                                data[ptr][key] = "";
-                            } else {
-                                data[ptr][key] = tail;
-                                tail = {};
-                            }
-                        }
-                    } else {
-                        json_pointer p = ptr;
-                        for (; not p.empty(); p = p.parent_pointer()) {
-                            if (p.back() == key) {
-                                ptr = p / data[p].size();
-                                data[ptr] = json::object();
-                                break;
-                            }
-                        }
-                        if (p.empty()) {
-                            ptr /= key;
-                            data[ptr] = json::array();
-                            ptr /= 0;
-                        }
-                    }
-                    if (not tail.empty()) {
-                        parse_ref(parse_ref, tail, data, ptr);
-                    }
-                }
-                log::trace(fmt::format("Data:\njson='{}'", data.dump()));
-            };
-            parse_impl(parse_impl, chunk, data, ptr);
-        };
-        parse(chunk, data, ptr);
-    }
-
-    return data;
-}
-
 namespace ppcat::backend::internal {
 
-struct u8istream : std::basic_istream<char8_t> {
-    u8istream(std::istream &&istream) {
-        set_rdbuf(
-            reinterpret_cast<std::basic_streambuf<char8_t> *>(istream.rdbuf()));
-        istream.rdbuf(nullptr);
+std::pair<std::string, std::string> make_slug(std::string_view input) {
+    icu::UnicodeString uinput{input.data(),
+                              static_cast<int32_t>(input.length()), "UTF-8"};
+
+    icu::ErrorCode ec;
+    const icu::Normalizer2 *nfc = icu::Normalizer2::getNFCInstance(ec);
+    uinput = nfc->normalize(uinput, ec);
+    uinput.toLower();
+
+    UParseError pe;
+    const icu::Transliterator *trans = icu::Transliterator::createFromRules(
+        "",
+        "[^[:Lowercase Letter:][:Number:]]+ > '_'; :: Any-Null; ^ { '_'+ > ; "
+        "'_'+ } $ > ;",
+        UTRANS_FORWARD, pe, ec);
+    if (ec.isFailure()) {
+        log::critical_throw(
+            fmt::format("Cannot create transliterator: {}", ec.errorName()));
     }
+    trans->transliterate(uinput);
+
+    icu::UnicodeString ufirst = uinput;
+    const icu::Transliterator *trans_first =
+        icu::Transliterator::createFromRules(
+            "first",
+            "'_' { [[:Number:]n]+ } $ > ; :: Any-Null;"
+            "'_'+ } $ > ;",
+            UTRANS_FORWARD, pe, ec);
+    if (ec.isFailure()) {
+        log::critical_throw(
+            fmt::format("Cannot create transliterator: {}", ec.errorName()));
+    }
+    trans_first->transliterate(ufirst);
+
+    std::string first;
+    ufirst.toUTF8String(first);
+
+    if (ufirst.endsWith(uinput)) {
+        return {first, ""};
+    }
+
+    icu::UnicodeString usecond = uinput;
+    usecond.removeBetween(0, ufirst.length());
+    trans->transliterate(usecond);
+
+    std::string second;
+    usecond.toUTF8String(second);
+
+    return {first, second};
+}
+
+using namespace tao;
+
+struct leftangle : pegtl::one<'<'> {};
+struct rightangle : pegtl::one<'>'> {};
+struct linebreak
+    : pegtl::utf8::one<U'\u000a', U'\u000c', U'\u2028', U'\u2029'> {};
+struct whitespace
+    : pegtl::seq<pegtl::not_at<linebreak>, pegtl::utf8::icu::white_space> {};
+struct character : pegtl::seq<pegtl::not_at<linebreak>, pegtl::utf8::any> {};
+struct lineend
+    : pegtl::seq<pegtl::star<whitespace>, pegtl::sor<linebreak, pegtl::eof>> {};
+struct key : pegtl::seq<pegtl::not_at<rightangle>,
+                        pegtl::until<pegtl::at<rightangle>, character>> {};
+struct tag : pegtl::seq<leftangle, key, rightangle> {};
+struct emptytag : pegtl::seq<leftangle, rightangle> {};
+struct padtag : pegtl::pad<tag, whitespace> {};
+struct valueend
+    : pegtl::seq<lineend, pegtl::sor<pegtl::eof, pegtl::rep_min<1, lineend>,
+                                     pegtl::at<padtag>>> {};
+struct section : pegtl::seq<padtag, valueend> {};
+struct value : pegtl::seq<pegtl::not_at<valueend>,
+                          pegtl::until<pegtl::at<valueend>, pegtl::utf8::any>> {
 };
+struct attribute : pegtl::seq<padtag, value, valueend> {};
+struct paragraph : pegtl::seq<value, valueend> {};
+struct whole
+    : pegtl::must<pegtl::star<pegtl::utf8::icu::white_space>, section,
+                  pegtl::star<pegtl::sor<section, attribute, paragraph>>> {};
 
-using namespace tao::pegtl;
-
-struct leftangle : one<'<'> {};
-struct rightangle : one<'>'> {};
-struct linebreak : utf8::one<U'\u000a', U'\u000c', U'\u2028', U'\u2029'> {};
-struct whitespace : seq<not_at<linebreak>, utf8::icu::white_space> {};
-struct character : seq<not_at<linebreak>, utf8::any> {};
-struct emptyline : seq<star<whitespace>, linebreak> {};
-struct tagcontent : until<at<rightangle>, must<character>> {};
-struct tag : seq<leftangle, must<tagcontent>, utf8::any> {
-    using content = tagcontent;
+struct state {
+    std::string key;
+    std::string value;
+    nlohmann::json data;
+    nlohmann::json_pointer<nlohmann::json> ptr;
 };
-struct rule : pad<tag, whitespace> {};
-struct rulelist : until<eof, sor<rule, emptyline>> {};
-
-struct state {};
 
 template <typename R>
 struct action : tao::pegtl::nothing<R> {};
 
 template <>
-struct action<tag::content> {
+struct action<key> {
     template <typename I>
     static void apply(const I &in, state &s) {
-        std::string key{in.iterator().data, in.input().current()};
-        std::cout << fmt::format("======== {}\n", key);
-        (void)s;
+        std::string pick{in.iterator().data, in.input().current()};
+        s.key = pick;
+    }
+};
+
+template <>
+struct action<value> {
+    template <typename I>
+    static void apply(const I &in, state &s) {
+        std::string pick{in.iterator().data, in.input().current()};
+        s.value = pick;
+    }
+};
+
+template <>
+struct action<section> : pegtl::discard_input_on_success {
+    template <typename I>
+    static void apply(const I &in, state &s) {
+        (void)in;
+
+        auto key = make_slug(s.key);
+        nlohmann::json_pointer p = s.ptr;
+        std::string last;
+        for (; not p.empty(); p = p.parent_pointer()) {
+            if (p.back() == key.first) {
+                break;
+            }
+            last = p.back();
+        }
+        if (p.empty()) {
+            s.ptr /= key.first;
+            if (not key.second.empty()) {
+                s.data[s.ptr] = nlohmann::json::array();
+                s.ptr /= 0;
+            } else {
+                s.data[s.ptr] = nlohmann::json::object();
+            }
+        } else {
+            bool isArray =
+                not last.empty() and
+                last.find_first_not_of("0123456789") == std::string::npos;
+            if (isArray) {
+                s.ptr = p / last;
+            } else {
+                s.ptr = p;
+            }
+            if (not key.second.empty()) {
+                if (not isArray) {
+                    log::critical_throw(
+                        fmt::format("Data is not array for pointer \'{}\'",
+                                    s.ptr.to_string()));
+                }
+                nlohmann::json_pointer parent = s.ptr.parent_pointer();
+                s.ptr = parent / s.data[parent].size();
+            }
+        }
+        log::trace(
+            fmt::format("Section:\nkey first={}\nkey second={}\npointer={}\n",
+                        key.first, key.second, s.ptr.to_string()));
+    }
+};
+
+template <>
+struct action<attribute> : pegtl::discard_input_on_success {
+    template <typename I>
+    static void apply(const I &in, state &s) {
+        (void)in;
+
+        auto key = make_slug(s.key);
+        nlohmann::json_pointer p = s.ptr / key.first;
+        if (key.second.empty()) {
+            s.data[p] = s.value;
+        } else {
+            s.data[p].push_back(s.value);
+        }
+        log::trace(
+            fmt::format("Attribute:\nkey first={}\nkey second={}\nvalue={}\n",
+                        key.first, key.second, s.data[p].dump()));
+    }
+};
+
+template <>
+struct action<paragraph> : pegtl::discard_input_on_success {
+    template <typename I>
+    static void apply(const I &in, state &s) {
+        (void)in;
+
+        nlohmann::json_pointer p = s.ptr / "paragraph";
+        s.data[p].push_back(s.value);
+        log::trace(fmt::format("Paragraph:\n{}\n", s.data[p].dump()));
     }
 };
 
 }  // namespace ppcat::backend::internal
 
-json picker::pick(std::istream &input) {
-    using namespace tao;
+using namespace tao;
 
+template <>
+inline pegtl::memory_input<>
+picker::parse_input<std::string_view, pegtl::memory_input<>>(
+    std::string_view input) {
+    return {input.begin(), input.end(), ""};
+}
+
+template <>
+inline pegtl::istream_input<>
+picker::parse_input<std::istream &, pegtl::istream_input<>>(
+    std::istream &input) {
+    return {input, buffer_size, ""};
+}
+
+template <typename I, typename T>
+inline nlohmann::json picker::pick(I input) {
     internal::state state;
-    pegtl::istream_input istream{input, buffer_size, ""};
-    parse<internal::rulelist, internal::action>(istream, state);
+    T _input = parse_input<I, T>(input);
+    pegtl::parse<internal::whole, internal::action>(_input, state);
 
-    return {};
+    return state.data;
+}
+
+nlohmann::json picker::pick(std::string_view input) {
+    return pick<std::string_view, pegtl::memory_input<>>(input);
+}
+
+nlohmann::json picker::pick(std::istream &input) {
+    return pick<std::istream &, pegtl::istream_input<>>(input);
 }

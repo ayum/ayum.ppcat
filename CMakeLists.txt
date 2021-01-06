@@ -20,6 +20,9 @@ include_directories(SYSTEM external)
 include(CTest)
 include(FindPkgConfig)
 
+set(PMM_URL_BASE "file://${CMAKE_SOURCE_DIR}/tools/pmm")
+include(pmm.cmake)
+
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "/opt/papercat" CACHE PATH "..." FORCE)
 endif()

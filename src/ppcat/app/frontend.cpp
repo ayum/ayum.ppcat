@@ -1,10 +1,10 @@
 #include "frontend.hpp"
-#include "picker.hpp"
 #include "logging.hpp"
+#include "picker.hpp"
 
+#include <fmt/format.h>
 #include <CLI/CLI.hpp>
 #include <mio/mmap.hpp>
-#include <fmt/format.h>
 
 #include <filesystem>
 #include <fstream>
@@ -16,8 +16,12 @@ using namespace nlohmann;
 namespace filesystem = std::filesystem;
 
 void frontend::define_cli(CLI::App &app, frontend::config &config) {
-    app.add_option("-o,--output", config.output, "Ouput rendered file path, if empty then template without extension");
-    app.add_option("file", config.input, "File to read template parameters from")->required();
+    app.add_option(
+        "-o,--output", config.output,
+        "Ouput rendered file path, if empty then template without extension");
+    app.add_option("file", config.input,
+                   "File to read template parameters from")
+        ->required();
 }
 
 void frontend::run() {
@@ -30,6 +34,8 @@ void frontend::run() {
 
     mio::mmap_source mmap(input.string());
 
-    json data = _picker.pick({mmap.begin(), mmap.end()});
+    _engine.start();
+
+    nlohmann::json data = _picker.pick({mmap.begin(), mmap.end()});
     file << data.dump(2);
 }

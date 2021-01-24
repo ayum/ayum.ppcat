@@ -6,6 +6,8 @@ target_sources(app PRIVATE
     frontend.cpp frontend.hpp frontend.test.cpp
 )
 
+# --whole-archive needed for inclusion of doctest tests into release binary
+target_link_libraries(app PRIVATE "-Wl,--whole-archive" aym "-Wl,--no-whole-archive")
 target_link_libraries(app PRIVATE "-Wl,--whole-archive" common "-Wl,--no-whole-archive")
 target_link_libraries(app PRIVATE "-Wl,--whole-archive" backend "-Wl,--no-whole-archive")
 target_link_libraries(app PRIVATE "-Wl,--whole-archive" scripting "-Wl,--no-whole-archive")

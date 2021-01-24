@@ -5,6 +5,7 @@ add_library(backend STATIC
 target_include_directories(backend INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(backend PRIVATE common)
+target_link_libraries(backend PRIVATE aym)
 
 find_package(CLI11 CONFIG REQUIRED)
 target_link_libraries(backend PRIVATE CLI11::CLI11)

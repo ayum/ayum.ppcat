@@ -2,14 +2,16 @@
 
 #include <string>
 
+namespace ayum = com::github::ayum;
+
 /*
  * See
  * https://stackoverflow.com/questions/10727174/damerau-levenshtein-distance-edit-distance-with-transposition-c-implementation
  * for details
  */
 
-size_t aym::damerau_levenshtein_distance(std::string p_string1,
-                                         std::string p_string2) {
+size_t ayum::dld::damerau_levenshtein_distance(std::string p_string1,
+                                               std::string p_string2) {
     int l_string_length1 = p_string1.length();
     int l_string_length2 = p_string2.length();
     std::size_t d[l_string_length1 + 1][l_string_length2 + 1];

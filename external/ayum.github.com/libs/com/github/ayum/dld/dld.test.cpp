@@ -4,7 +4,7 @@
 
 #include <utility>
 
-using namespace aym;
+using namespace com::github::ayum::dld;
 
 TEST_CASE("testing transposition") {
     CHECK(damerau_levenshtein_distance("", "") == 0);

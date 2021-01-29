@@ -36,5 +36,4 @@ if(BUILD_COVERAGE)
         )
 endif()
 
-add_subdirectory(aym)
 add_subdirectory(ppcat)

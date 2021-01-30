@@ -5,6 +5,10 @@ add_library(common STATIC
 
 target_include_directories(common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/log ${CMAKE_CURRENT_SOURCE_DIR}/cli)
 
+_pmm(VCPKG REVISION 2020.11-1
+    REQUIRES spdlog fmt
+)
+
 find_package(spdlog CONFIG REQUIRED)
 target_link_libraries(common PRIVATE spdlog::spdlog_header_only)
 

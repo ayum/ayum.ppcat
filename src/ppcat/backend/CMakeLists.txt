@@ -4,8 +4,15 @@ add_library(backend STATIC
 
 target_include_directories(backend INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(backend PRIVATE ayum::dld)
 target_link_libraries(backend PRIVATE common)
+
+_pmm(VCPKG REVISION 2020.11-1
+    REQUIRES cli11 mio fmt ICU nlohmann-json pegtl ayum
+    PORTS "${CMAKE_SOURCE_DIR}/tools/vcpkg/ports/ayum"
+)
+
+find_package(ayum CONFIG REQUIRED)
+target_link_libraries(backend PRIVATE ayum::dld)
 
 find_package(CLI11 CONFIG REQUIRED)
 target_link_libraries(backend PRIVATE CLI11::CLI11)

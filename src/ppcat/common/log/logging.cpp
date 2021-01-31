@@ -6,9 +6,9 @@
 #include <fmt/format.h>
 
 #include <filesystem>
-#include <string>
+#include <source_location>
 #include <stdexcept>
-#include <experimental/source_location>
+#include <string>
 
 using namespace ppcat::common;
 using namespace std;
@@ -63,7 +63,8 @@ void log::initialize(std::filesystem::path path, std::string level) {
     log::initialize(path, log::from_str(level));
 }
 
-void log::log(log::level level, std::string_view msg, const std::experimental::source_location& location) {
+void log::log(log::level level, std::string_view msg,
+              const std::source_location& location) {
     if (level <= log::level::debug) {
         spdlog::log(to_spdlog_level(level), "{}\nIn {}:{}", msg, location.file_name(), location.line());
     } else {
@@ -85,31 +86,32 @@ void log::set_file(std::filesystem::path path) {
     }
 }
 
-void log::trace(string_view msg, const std::experimental::source_location& location) {
+void log::trace(string_view msg, const std::source_location& location) {
     log::log(log::level::trace, msg, location);
 }
 
-void log::debug(string_view msg, const std::experimental::source_location& location) {
+void log::debug(string_view msg, const std::source_location& location) {
     log::log(log::level::debug, msg, location);
 }
 
-void log::info(string_view msg, const std::experimental::source_location& location) {
+void log::info(string_view msg, const std::source_location& location) {
     log::log(log::level::info, msg, location);
 }
 
-void log::warning(string_view msg, const std::experimental::source_location& location) {
+void log::warning(string_view msg, const std::source_location& location) {
     log::log(log::level::warning, msg, location);
 }
 
-void log::error(string_view msg, const std::experimental::source_location& location) {
+void log::error(string_view msg, const std::source_location& location) {
     log::log(log::level::error, msg, location);
 }
 
-void log::critical(string_view msg, const std::experimental::source_location& location) {
+void log::critical(string_view msg, const std::source_location& location) {
     log::log(log::level::critical, msg, location);
 }
 
-void log::critical_throw(string_view msg, const std::experimental::source_location& location) {
+void log::critical_throw(string_view msg,
+                         const std::source_location& location) {
     log::log(log::level::critical, msg, location);
     throw std::runtime_error(std::string(msg));
 }

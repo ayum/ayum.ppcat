@@ -3,9 +3,9 @@
 #define LOGGING_HPP
 
 #include <filesystem>
+#include <source_location>
 #include <string>
 #include <string_view>
-#include <experimental/source_location>
 
 namespace ppcat::common::log {
 
@@ -31,17 +31,25 @@ void set_level(level level);
 void set_level(std::string level = std::string{default_level});
 void set_file(std::filesystem::path path);
 
-void log(level level, std::string_view msg, const std::experimental::source_location& location = std::experimental::source_location::current());
-void trace(std::string_view msg, const std::experimental::source_location& location = std::experimental::source_location::current());
-void debug(std::string_view msg, const std::experimental::source_location& location = std::experimental::source_location::current());
-void info(std::string_view msg, const std::experimental::source_location& location = std::experimental::source_location::current());
-void warning(std::string_view msg, const std::experimental::source_location& location = std::experimental::source_location::current());
-void error(std::string_view msg, const std::experimental::source_location& location = std::experimental::source_location::current());
-void critical(std::string_view msg, const std::experimental::source_location& location = std::experimental::source_location::current());
+void log(
+    level level, std::string_view msg,
+    const std::source_location& location = std::source_location::current());
+void trace(std::string_view msg, const std::source_location& location =
+                                     std::source_location::current());
+void debug(std::string_view msg, const std::source_location& location =
+                                     std::source_location::current());
+void info(std::string_view msg, const std::source_location& location =
+                                    std::source_location::current());
+void warning(std::string_view msg, const std::source_location& location =
+                                       std::source_location::current());
+void error(std::string_view msg, const std::source_location& location =
+                                     std::source_location::current());
+void critical(std::string_view msg, const std::source_location& location =
+                                        std::source_location::current());
 
-[[noreturn]]
-void critical_throw(std::string_view msg, const std::experimental::source_location& location = std::experimental::source_location::current());
-
+[[noreturn]] void critical_throw(
+    std::string_view msg,
+    const std::source_location& location = std::source_location::current());
 }
 
 #endif /* LOGGING_HPP */

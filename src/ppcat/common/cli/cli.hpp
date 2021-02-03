@@ -2,6 +2,7 @@
 #define CLI_HPP
 
 #include "logging.hpp"
+#include "project.hpp"
 
 #include <CLI/CLI.hpp>
 
@@ -9,17 +10,7 @@
 #include <string>
 #include <tuple>
 
-#ifdef DOCTEST_CONFIG_DISABLE
-#define PROJECT_BUILD_TESTS 0
-#else
-#define PROJECT_BUILD_TESTS 1
-#endif
-
 namespace ppcat::common::cli {
-
-constexpr std::string_view version = PROJECT_VERSION;
-constexpr std::string_view description = PROJECT_DESCRIPTION;
-constexpr bool build_tests = PROJECT_BUILD_TESTS;
 
 template <typename X>
 struct cli;
@@ -32,7 +23,7 @@ struct cli<std::tuple<T...>> {
     using config_t = std::tuple<config_type<T>...>;
 
     cli(int &argc, const char *const *&argv)
-        : app{std::string(description)},
+        : app{std::string(ppcat::project_description)},
           argc_orig{argc},
           argv_orig{argv},
           argc{argc},
@@ -76,7 +67,8 @@ struct cli<std::tuple<T...>> {
         app.add_flag(
             "-v,--version",
             [](int) {
-                std::cout << std::flush << version << std::endl << std::flush;
+                std::cout << std::flush << ppcat::project_version << std::endl
+                          << std::flush;
             },
             "Print version");
 
@@ -99,7 +91,7 @@ struct cli<std::tuple<T...>> {
             },
             "Log file for logging, stdout if empty");
 
-        if constexpr (build_tests) {
+        if constexpr (ppcat::project_build_tests) {
             auto &tests = *app.add_subcommand("tests", "Run tests");
             tests.prefix_command();
             tests.preparse_callback([this](int remain) {

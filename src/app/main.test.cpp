@@ -4,7 +4,7 @@
 
 #include <utility>
 
-using namespace ppcat::app;
+using namespace app;
 
 TEST_CASE("testing tests option") {
     CHECK(main(4, std::move((const char *[]){"ppcat", "", "tests", "--help", nullptr})) == 0);

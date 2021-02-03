@@ -1,0 +1,16 @@
+#ifndef PPCAT_PROJECT_HPP
+#define PPCAT_PROJECT_HPP
+
+#include <string_view>
+
+namespace ppcat {
+
+// clang-format off
+inline constexpr const std::string_view project_description = "@PROJECT_DESCRIPTION@";
+inline constexpr const std::string_view project_version = "@PROJECT_VERSION@";
+inline constexpr const bool project_build_tests = @PROJECT_BUILD_TESTS@;
+// clang-format on
+
+}  // namespace ppcat
+
+#endif /* PPCAT_PROJECT_HPP */

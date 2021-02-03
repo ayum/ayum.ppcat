@@ -10,7 +10,7 @@
 #include <fstream>
 #include <string>
 
-using namespace ppcat::app;
+using namespace app;
 using namespace ppcat::common;
 using namespace nlohmann;
 namespace filesystem = std::filesystem;

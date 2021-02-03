@@ -10,7 +10,7 @@
 #include <filesystem>
 #include <tuple>
 
-namespace ppcat::app {
+namespace app {
 
 struct frontend {
     struct config {
@@ -45,6 +45,6 @@ private:
     ppcat::engine::scripting::engine _engine;
 };
 
-}  // namespace ppcat::app
+}  // namespace app
 
 #endif  // FRONTEND_HPP

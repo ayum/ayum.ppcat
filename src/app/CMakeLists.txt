@@ -6,18 +6,16 @@ target_sources(app PRIVATE
     frontend.cpp frontend.hpp frontend.test.cpp
 )
 
-# --whole-archive needed for inclusion of doctest tests into release binary
-target_link_libraries(app PRIVATE "-Wl,--whole-archive" common "-Wl,--no-whole-archive")
-target_link_libraries(app PRIVATE "-Wl,--whole-archive" backend "-Wl,--no-whole-archive")
-target_link_libraries(app PRIVATE "-Wl,--whole-archive" scripting "-Wl,--no-whole-archive")
+target_link_libraries(app PRIVATE ppcat)
 
-_pmm(VCPKG REVISION 2020.11-1
-    REQUIRES cli11 fmt ayum
-    PORTS "${CMAKE_SOURCE_DIR}/tools/vcpkg/ports/ayum"
-)
+_pmm(cli11 fmt ayum)
 
 find_package(ayum CONFIG REQUIRED)
 target_link_libraries(app PRIVATE ayum::dld)
+if(BUILD_TESTING)
+find_package(doctest CONFIG REQUIRED)
+target_link_libraries(app PRIVATE ayum::dld-test)
+endif()
 
 find_package(CLI11 CONFIG REQUIRED)
 target_link_libraries(app PRIVATE CLI11::CLI11)

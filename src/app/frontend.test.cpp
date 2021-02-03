@@ -2,4 +2,4 @@
 
 #include <doctest/doctest.h>
 
-using namespace ppcat::app;
+using namespace app;

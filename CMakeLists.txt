@@ -24,7 +24,9 @@ include(FindPkgConfig)
 option(PROJECT_USE_PMM "Autoinstall dependencies on configure with pmm" ON)
 macro(_pmm)
 if(PROJECT_USE_PMM)
-pmm(${ARGV})
+pmm(VCPKG REVISION 2020.11-1 REQUIRES ${ARGV} PORTS
+    "${CMAKE_SOURCE_DIR}/tools/vcpkg/ports/ayum"
+)
 endif()
 endmacro()
 
@@ -33,10 +35,12 @@ set(PMM_URL_BASE "file://${CMAKE_CURRENT_LIST_DIR}/tools/pmm")
 include(pmm.cmake)
 endif()
 if(BUILD_TESTING)
-_pmm(VCPKG REVISION 2020.11-1
-    REQUIRES doctest
-)
+_pmm(doctest)
 endif()
+
+_pmm(ayum)
+find_package(ayum CONFIG REQUIRED)
+include(AyumCoverageHelper)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "/opt/papercat" CACHE PATH "..." FORCE)

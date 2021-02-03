@@ -1,38 +1,33 @@
-add_library(backend STATIC
+target_sources(ppcat INTERFACE
     picker.cpp picker.hpp picker.test.cpp
 )
 
-target_include_directories(backend INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(ppcat INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
 
-target_link_libraries(backend PRIVATE common)
-
-_pmm(VCPKG REVISION 2020.11-1
-    REQUIRES cli11 mio fmt ICU nlohmann-json pegtl ayum
-    PORTS "${CMAKE_SOURCE_DIR}/tools/vcpkg/ports/ayum"
-)
+_pmm(cli11 mio fmt ICU nlohmann-json pegtl ayum)
 
 find_package(ayum CONFIG REQUIRED)
-target_link_libraries(backend PRIVATE ayum::dld)
+target_link_libraries(ppcat INTERFACE ayum::dld)
 
 find_package(CLI11 CONFIG REQUIRED)
-target_link_libraries(backend PRIVATE CLI11::CLI11)
+target_link_libraries(ppcat INTERFACE CLI11::CLI11)
 
 find_package(mio CONFIG REQUIRED)
-target_link_libraries(backend PRIVATE mio::mio mio::mio_base)
+target_link_libraries(ppcat INTERFACE mio::mio mio::mio_base)
 
 find_package(fmt CONFIG REQUIRED)
-target_link_libraries(backend PRIVATE fmt::fmt fmt::fmt-header-only)
+target_link_libraries(ppcat INTERFACE fmt::fmt fmt::fmt-header-only)
 
 find_package(ICU COMPONENTS uc data i18n REQUIRED)
-target_link_libraries(backend PUBLIC ICU::i18n ICU::uc ICU::data)
+target_link_libraries(ppcat INTERFACE ICU::i18n ICU::uc ICU::data)
 
 find_package(nlohmann_json CONFIG REQUIRED)
-target_link_libraries(backend PUBLIC nlohmann_json nlohmann_json::nlohmann_json)
+target_link_libraries(ppcat INTERFACE nlohmann_json nlohmann_json::nlohmann_json)
 
 find_package(pegtl CONFIG REQUIRED)
-target_link_libraries(backend PRIVATE taocpp::pegtl)
+target_link_libraries(ppcat INTERFACE taocpp::pegtl)
 
 if(BUILD_TESTING)
 find_package(doctest CONFIG REQUIRED)
-target_link_libraries(backend PRIVATE doctest::doctest)
+target_link_libraries(ppcat INTERFACE doctest::doctest)
 endif()

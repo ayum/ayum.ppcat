@@ -1,0 +1,11 @@
+export module project;
+
+namespace ppcat {
+
+// clang-format off
+export inline constexpr const char *project_description = "@PROJECT_DESCRIPTION@";
+export inline constexpr const char *project_version = "@PROJECT_VERSION@";
+export inline constexpr const bool project_build_tests = @PROJECT_BUILD_TESTS@;
+// clang-format on
+
+}  // namespace ppcat

@@ -1,12 +1,13 @@
 #include "cli.hpp"
 #include "frontend.hpp"
-#include "project.hpp"
 
 #include <fmt/format.h>
 #include <iostream>
 
 #define DOCTEST_CONFIG_IMPLEMENT
 #include <doctest/doctest.h>
+
+import project;
 
 using namespace ppcat;
 

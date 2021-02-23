@@ -13,10 +13,10 @@ else()
 set(PROJECT_BUILD_TESTS "true")
 endif()
 
-configure_file(project.hpp.in project.hpp)
+configure_file(project.cpp.in project.cpp)
 
 target_sources(ppcat INTERFACE
-    "${CMAKE_CURRENT_BINARY_DIR}/project.hpp"
+    "${CMAKE_CURRENT_BINARY_DIR}/project.cpp"
 )
 
 add_subdirectory(common)

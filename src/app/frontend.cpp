@@ -1,5 +1,4 @@
 #include "frontend.hpp"
-#include "logging.hpp"
 #include "picker.hpp"
 
 #include <fmt/format.h>
@@ -9,6 +8,8 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+
+import log;
 
 using namespace app;
 using namespace ppcat::common;

@@ -1,5 +1,4 @@
 #include "picker.hpp"
-#include "logging.hpp"
 
 #include <fmt/format.h>
 #include <unicode/errorcode.h>
@@ -13,6 +12,8 @@
 #include <regex>
 #include <string_view>
 #include <utility>
+
+import log;
 
 using namespace ppcat::backend;
 using namespace ppcat::common;

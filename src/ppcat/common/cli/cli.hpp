@@ -1,8 +1,6 @@
 #ifndef CLI_HPP
 #define CLI_HPP
 
-#include "logging.hpp"
-
 #include <CLI/CLI.hpp>
 
 #include <filesystem>
@@ -10,6 +8,7 @@
 #include <tuple>
 
 import project;
+import log;
 namespace ppcat::common::cli {
 
 template <typename X>

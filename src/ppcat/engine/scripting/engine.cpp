@@ -1,11 +1,12 @@
 #include "engine.hpp"
-#include "logging.hpp"
 
 #include <CLI/CLI.hpp>
 #include <mio/mmap.hpp>
 
 #include <filesystem>
 #include <string_view>
+
+import log;
 
 using namespace ppcat::common;
 using namespace ppcat::engine::scripting;

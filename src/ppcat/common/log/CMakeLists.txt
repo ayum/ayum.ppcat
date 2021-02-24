@@ -1,8 +1,6 @@
 target_sources(ppcat INTERFACE
-    logging.cpp logging.hpp
+    log.cpp
 )
-
-target_include_directories(ppcat INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
 
 _pmm(spdlog fmt)
 

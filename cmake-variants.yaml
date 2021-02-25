@@ -3,12 +3,28 @@ buildType:
   description: The build type.
   choices:
     debug:
-      short: Debug
-      long: Disable optimizations - include debug information.
+      short: Debug with tests
+      long: Disable optimizations, include debug information, include tests.
+      buildType: debug
+    debug-coverage:
+      short: Debug with tests and coverage
+      long: Disable optimizations, include debug information, include tests, include coverage.
       buildType: debug
       settings:
         BUILD_COVERAGE: TRUE
+    debug-no-tests:
+      short: Debug without tests
+      long: Disable optimizations, include debug information, exclude tests.
+      buildType: debug
+      settings:
+        BUILD_TESTING: FALSE
     release:
-      short: Release
-      long: Optimize for speed - exclude debug information.
+      short: Release with tests
+      long: Optimize for speed, exclude debug information, include tests.
       buildType: release
+    release-no-tests:
+      short: Release without tests
+      long: Optimize for speed, exclude debug information, exclude tests.
+      buildType: release
+      settings:
+        BUILD_TESTING: FALSE

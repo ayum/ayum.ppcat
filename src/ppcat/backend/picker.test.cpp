@@ -1,6 +1,7 @@
 #include "picker.hpp"
 
 #include <doctest/doctest.h>
+#include <fmt/format.h>
 
 #include <nlohmann/json.hpp>
 
@@ -10,78 +11,33 @@
 using namespace ppcat::backend;
 using namespace nlohmann;
 
+
+namespace ppcat::backend::internal {
+
+std::string make_slug(std::string_view input);
+
+}
+
 TEST_CASE("picker text parsing") {
     ppcat::backend::picker picker{picker::config{}};
 
     SUBCASE("several keys in one chunk") {
-        std::string_view input(R"(
-<ключ>
-<ключ1> значение 1
-<ключ2> значение 2
-<ключ3> значение 3)");
+        std::string_view input(R"(  fer  m<<« NNNNN_N)NNNNNN Глава №1   
 
-        json output = {{"ключ",
-                        {
-                            {"ключ1", "значение 1"},
-                            {"ключ2", "значение 2"},
-                            {"ключ3", "значение 3"},
-                        }}};
-        CHECK(picker.pick(input) == output);
-    }
-    SUBCASE("multiline value") {
-        std::string_view input(R"(
-<корень>
-<ключ>
-строка 1
-строка 2)");
+        dsfsdf
 
-        json output = {{"корень", {{"ключ", "\nстрока 1\nстрока 2"}}}};
-        CHECK(picker.pick(input) == output);
-    }
-    SUBCASE("slug key") {
-        std::string_view input(R"(
-<корень>
-<клюЧ 1  ΣσςΣ > строка 1
-строка 2)");
+        ddddd         dfdfd
+        dddd
+        fff
 
-        json output = {{"корень", {{"ключ_1_σσςς", "строка 1\nстрока 2"}}}};
-        CHECK(picker.pick(input) == output);
-    }
-}
+        fffffs2
 
-TEST_CASE("picker pegtl streams") {
-    ppcat::backend::picker picker{picker::config{}};
-    SUBCASE("test1") {
-        std::istringstream input(R"(
-<статья>
-<аттрибут> значение
 
-параграф
 
-<раздел 0>
-<подраздел>
 
-параграф подраздела
-
-<раздел>
-
-параграф раздела
-
-<раздел 0>
-<подраздел>
-
-параграф подраздела следующего раздела
-)");
-        json output = {
-            {"статья",
-             {{"аттрибут", "значение"},
-              {"paragraph", {"параграф"}},
-              {"раздел",
-               {{{"paragraph", {"параграф раздела"}},
-                 {"подраздел", {{"paragraph", {"параграф подраздела"}}}}},
-                {{"подраздел",
-                  {{"paragraph",
-                    {"параграф подраздела следующего раздела"}}}}}}}}}};
-        CHECK(picker.pick(input) == output);
+        )");
+        json output = picker.pick(input);
+        fmt::print("{}\n", output.dump());
+        fmt::print("{}\n", ppcat::backend::internal::make_slug(output[0][0].dump()));
     }
 }

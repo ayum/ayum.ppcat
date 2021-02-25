@@ -29,7 +29,7 @@ void picker::define_cli(CLI::App &app, config &config) {
 
 namespace ppcat::backend::internal {
 
-std::pair<std::string, std::string> make_slug(std::string_view input) {
+std::string make_slug(std::string_view input) {
     icu::UnicodeString uinput{input.data(),
                               static_cast<int32_t>(input.length()), "UTF-8"};
 
@@ -50,40 +50,14 @@ std::pair<std::string, std::string> make_slug(std::string_view input) {
     }
     trans->transliterate(uinput);
 
-    icu::UnicodeString ufirst = uinput;
-    const icu::Transliterator *trans_first =
-        icu::Transliterator::createFromRules(
-            "first",
-            "'_' { [[:Number:]n]+ } $ > ; :: Any-Null;"
-            "'_'+ } $ > ;",
-            UTRANS_FORWARD, pe, ec);
-    if (ec.isFailure()) {
-        log::critical_throw(
-            fmt::format("Cannot create transliterator: {}", ec.errorName()));
-    }
-    trans_first->transliterate(ufirst);
+    std::string result;
+    uinput.toUTF8String(result);
 
-    std::string first;
-    ufirst.toUTF8String(first);
-
-    if (ufirst.endsWith(uinput)) {
-        return {first, ""};
-    }
-
-    icu::UnicodeString usecond = uinput;
-    usecond.removeBetween(0, ufirst.length());
-    trans->transliterate(usecond);
-
-    std::string second;
-    usecond.toUTF8String(second);
-
-    return {first, second};
+    return result;
 }
 
 using namespace tao;
 
-struct leftangle : pegtl::one<'<'> {};
-struct rightangle : pegtl::one<'>'> {};
 struct linebreak
     : pegtl::utf8::one<U'\u000a', U'\u000c', U'\u2028', U'\u2029'> {};
 struct whitespace
@@ -91,49 +65,37 @@ struct whitespace
 struct character : pegtl::seq<pegtl::not_at<linebreak>, pegtl::utf8::any> {};
 struct lineend
     : pegtl::seq<pegtl::star<whitespace>, pegtl::sor<linebreak, pegtl::eof>> {};
-struct key : pegtl::seq<pegtl::not_at<rightangle>,
-                        pegtl::until<pegtl::at<rightangle>, character>> {};
-struct tag : pegtl::seq<leftangle, key, rightangle> {};
-struct emptytag : pegtl::seq<leftangle, rightangle> {};
-struct padtag : pegtl::pad<tag, whitespace> {};
-struct valueend
-    : pegtl::seq<lineend, pegtl::sor<pegtl::eof, pegtl::rep_min<1, lineend>,
-                                     pegtl::at<padtag>>> {};
-struct section : pegtl::seq<padtag, valueend> {};
-struct value : pegtl::seq<pegtl::not_at<valueend>,
-                          pegtl::until<pegtl::at<valueend>, pegtl::utf8::any>> {
+struct paragraph_content
+    : pegtl::plus<pegtl::seq<pegtl::not_at<lineend>, character>> {};
+struct paragraph
+    : pegtl::seq<pegtl::not_at<lineend>,
+                 pegtl::pad<paragraph_content, whitespace>, lineend> {};
+struct section
+    : pegtl::seq<pegtl::plus<paragraph>,
+                 pegtl::star<pegtl::seq<pegtl::not_at<pegtl::eof>, lineend>>> {
 };
-struct attribute : pegtl::seq<padtag, value, valueend> {};
-struct paragraph : pegtl::seq<value, valueend> {};
-struct whole
-    : pegtl::must<pegtl::star<pegtl::utf8::icu::white_space>, section,
-                  pegtl::star<pegtl::sor<section, attribute, paragraph>>> {};
+struct whole : pegtl::must<pegtl::star<pegtl::utf8::icu::white_space>,
+                           pegtl::plus<section>> {};
 
 struct state {
-    std::string key;
-    std::string value;
-    nlohmann::json data;
-    nlohmann::json_pointer<nlohmann::json> ptr;
+    std::vector<std::deque<std::string>> data;
+    bool new_section = true;
 };
 
 template <typename R>
 struct action : tao::pegtl::nothing<R> {};
 
 template <>
-struct action<key> {
+struct action<paragraph_content> : pegtl::discard_input_on_success {
     template <typename I>
     static void apply(const I &in, state &s) {
-        std::string pick{in.iterator().data, in.input().current()};
-        s.key = pick;
-    }
-};
-
-template <>
-struct action<value> {
-    template <typename I>
-    static void apply(const I &in, state &s) {
-        std::string pick{in.iterator().data, in.input().current()};
-        s.value = pick;
+        std::string content{in.iterator().data, in.input().current()};
+        if (s.new_section) {
+            s.data.push_back({});
+            s.new_section = false;
+        }
+        auto &paragraphs = s.data.back();
+        paragraphs.push_back(content);
     }
 };
 
@@ -142,77 +104,7 @@ struct action<section> : pegtl::discard_input_on_success {
     template <typename I>
     static void apply(const I &in, state &s) {
         (void)in;
-
-        auto key = make_slug(s.key);
-        nlohmann::json_pointer p = s.ptr;
-        std::string last;
-        for (; not p.empty(); p = p.parent_pointer()) {
-            if (p.back() == key.first) {
-                break;
-            }
-            last = p.back();
-        }
-        if (p.empty()) {
-            s.ptr /= key.first;
-            if (not key.second.empty()) {
-                s.data[s.ptr] = nlohmann::json::array();
-                s.ptr /= 0;
-            } else {
-                s.data[s.ptr] = nlohmann::json::object();
-            }
-        } else {
-            bool isArray =
-                not last.empty() and
-                last.find_first_not_of("0123456789") == std::string::npos;
-            if (isArray) {
-                s.ptr = p / last;
-            } else {
-                s.ptr = p;
-            }
-            if (not key.second.empty()) {
-                if (not isArray) {
-                    log::critical_throw(
-                        fmt::format("Data is not array for pointer \'{}\'",
-                                    s.ptr.to_string()));
-                }
-                nlohmann::json_pointer parent = s.ptr.parent_pointer();
-                s.ptr = parent / s.data[parent].size();
-            }
-        }
-        log::trace(
-            fmt::format("Section:\nkey first={}\nkey second={}\npointer={}\n",
-                        key.first, key.second, s.ptr.to_string()));
-    }
-};
-
-template <>
-struct action<attribute> : pegtl::discard_input_on_success {
-    template <typename I>
-    static void apply(const I &in, state &s) {
-        (void)in;
-
-        auto key = make_slug(s.key);
-        nlohmann::json_pointer p = s.ptr / key.first;
-        if (key.second.empty()) {
-            s.data[p] = s.value;
-        } else {
-            s.data[p].push_back(s.value);
-        }
-        log::trace(
-            fmt::format("Attribute:\nkey first={}\nkey second={}\nvalue={}\n",
-                        key.first, key.second, s.data[p].dump()));
-    }
-};
-
-template <>
-struct action<paragraph> : pegtl::discard_input_on_success {
-    template <typename I>
-    static void apply(const I &in, state &s) {
-        (void)in;
-
-        nlohmann::json_pointer p = s.ptr / "paragraph";
-        s.data[p].push_back(s.value);
-        log::trace(fmt::format("Paragraph:\n{}\n", s.data[p].dump()));
+        s.new_section = true;
     }
 };
 

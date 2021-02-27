@@ -11,33 +11,77 @@
 using namespace ppcat::backend;
 using namespace nlohmann;
 
-
-namespace ppcat::backend::internal {
-
-std::string make_slug(std::string_view input);
-
-}
-
 TEST_CASE("picker text parsing") {
     ppcat::backend::picker picker{picker::config{}};
 
-    SUBCASE("several keys in one chunk") {
-        std::string_view input(R"(  fer  m<<« NNNNN_N)NNNNNN Глава №1   
+    SUBCASE("sandpit") {
+        std::string_view input(R"(
+название название
+ddddddddd ddddddddd
+gggggggg
 
-        dsfsdf
+hhhhhhh
+88888
 
-        ddddd         dfdfd
-        dddd
-        fff
-
-        fffffs2
-
-
+77777
 
 
-        )");
+* * *
+
+)");
         json output = picker.pick(input);
         fmt::print("{}\n", output.dump());
-        fmt::print("{}\n", ppcat::backend::internal::make_slug(output[0][0].dump()));
+    }
+
+    SUBCASE("first section article") {
+        std::string_view input(R"(
+статья
+название
+подназвание1
+подназвание2
+
+)");
+        json output = {{"type", "статья"},
+                       {"subtitle", {"подназвание1", "подназвание2"}},
+                       {"title", "название"},
+                       {"body", json::array()}};
+        CHECK(picker.pick(input) == output);
+    }
+
+    SUBCASE("no article") {
+            std::string_view input(R"(
+название
+подназвание1
+подназвание2
+
+текст1
+текст2
+)");
+            json output = {{"type", ""},
+                           {"subtitle", {"подназвание1", "подназвание2"}},
+                           {"title", "название"},
+                           {"body", json::array({"текст1\nтекст2\n"})}};
+            CHECK(picker.pick(input) == output);
+    }
+
+        SUBCASE("no article, summary, paragraph") {
+            std::string_view input(R"(
+название
+подназвание1
+подназвание2
+
+описание
+12345678
+ddd
+
+текст1
+текст2
+)");
+            json output = {{"type", ""},
+                           {"subtitle", {"подназвание1", "подназвание2"}},
+                           {"title", "название"},
+                           {"summary", "12345678\nddd\n"},
+                           {"body", json::array({"текст1\nтекст2\n"})}};
+            CHECK(picker.pick(input) == output);
     }
 }

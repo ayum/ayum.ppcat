@@ -133,9 +133,9 @@ entity parse_entity(const std::string_view &input) {
     if (false) {
     } else if (slug.starts_with("статья")) {
         result = article;
-    } else if (slug.starts_with("автор")) {
+    } else if (slug.starts_with("автор") or slug.starts_with("авторы")) {
         result = author;
-    } else if (slug.starts_with("дата")) {
+    } else if (slug.starts_with("дата") or slug.starts_with("день")) {
         result = date;
     } else if (slug.starts_with("глава")) {
         result = chapter;
@@ -155,6 +155,37 @@ entity parse_entity(const std::string_view &input) {
     return result;
 }
 
+inline void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+                return !std::isspace(ch);
+            }));
+}
+
+inline void rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(),
+                         [](unsigned char ch) { return !std::isspace(ch); })
+                .base(),
+            s.end());
+}
+
+std::pair<std::string, std::string> break_angles(const std::string &input) {
+    std::pair<std::string, std::string> result{};
+    std::size_t found = input.find("<");
+    result.first =
+        input.substr(0, found == std::string::npos ? input.size() : found);
+    result.second =
+        input.substr(found == std::string::npos ? input.size() : found);
+    result.second.erase(0, 1);
+    found = result.second.find(">");
+    result.second = result.second.substr(
+        0, found == std::string::npos ? result.second.size() : found);
+    rtrim(result.first);
+    ltrim(result.second);
+    rtrim(result.second);
+
+    return result;
+}
+
 json::json_pointer proc_article(json &data, const json::json_pointer &ptr,
                                 section_type &sec) {
     data["type"] = "статья";
@@ -163,6 +194,12 @@ json::json_pointer proc_article(json &data, const json::json_pointer &ptr,
     if (not sec.empty()) {
         data["title"] = sec[0];
         sec.pop_front();
+    }
+    if (not sec.empty()) {
+        auto title_slug = break_angles(sec.back());
+        data["short_title"] = title_slug.first;
+        data["title_slug"] = title_slug.second;
+        sec.pop_back();
     }
     data["subtitle"] = json::array();
     while (not sec.empty()) {
@@ -200,6 +237,35 @@ json::json_pointer proc_summary(json &data, const json::json_pointer &ptr,
     return ptr;
 }
 
+json::json_pointer proc_author(json &data, const json::json_pointer &ptr,
+                               section_type &sec) {
+    while (not sec.empty()) {
+        auto name_link = break_angles(sec.back());
+        data["author"]["name"] = name_link.first;
+        data["author"]["link"] = name_link.second;
+        sec.pop_front();
+    }
+    sec.clear();
+
+    return ptr;
+}
+
+json::json_pointer proc_date(json &data, const json::json_pointer &ptr,
+                             section_type &sec) {
+    while (not sec.empty()) {
+        auto date_pubdate = break_angles(sec.back());
+        data["date"] = date_pubdate.first;
+        data["publication_date"] = date_pubdate.second;
+        if (date_pubdate.second.empty()) {
+            data["publication_date"] = date_pubdate.first;
+        }
+        sec.pop_front();
+    }
+    sec.clear();
+
+    return ptr;
+}
+
 json smart_transform(data_type &data) {
     json result = json::object();
     json_pointer ptr = ""_json_pointer;
@@ -228,6 +294,12 @@ json smart_transform(data_type &data) {
                         break;
                     case entity::summary:
                         ptr = proc_summary(result, ptr, data[0]);
+                        break;
+                    case entity::author:
+                        ptr = proc_author(result, ptr, data[0]);
+                        break;
+                    case entity::date:
+                        ptr = proc_date(result, ptr, data[0]);
                         break;
                     default:
                         log::critical_throw(fmt::format(

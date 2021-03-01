@@ -190,10 +190,11 @@ json::json_pointer proc_paragraph(json &data, const json::json_pointer &ptr,
 
 json::json_pointer proc_summary(json &data, const json::json_pointer &ptr,
                                 section_type &sec) {
-    std::ostringstream joined;
-    std::copy(sec.begin(), sec.end(),
-              std::ostream_iterator<std::string>(joined, "\n"));
-    data["summary"] = joined.str();
+    data["summary"] = json::array();
+    while (not sec.empty()) {
+        data["summary"].push_back(sec[0]);
+        sec.pop_front();
+    }
     sec.clear();
 
     return ptr;

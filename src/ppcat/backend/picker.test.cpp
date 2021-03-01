@@ -80,7 +80,7 @@ ddd
             json output = {{"type", ""},
                            {"subtitle", {"подназвание1", "подназвание2"}},
                            {"title", "название"},
-                           {"summary", "12345678\nddd\n"},
+                           {"summary", json::array({"12345678", "ddd"})},
                            {"body", json::array({"текст1\nтекст2\n"})}};
             CHECK(picker.pick(input) == output);
     }

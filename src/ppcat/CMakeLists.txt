@@ -5,7 +5,7 @@ target_include_directories(ppcat INTERFACE
 )
 
 if(NOT BUILD_TESTING)
-add_compile_definitions(
+target_compile_definitions(ppcat INTERFACE
    DOCTEST_CONFIG_DISABLE
 )
 set(PROJECT_BUILD_TESTS "false")

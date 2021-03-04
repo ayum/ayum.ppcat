@@ -23,7 +23,7 @@ gggggggg < ee >
 автор
 тт <мм>
 
-hhhhhhh
+ hhhhhhh
 88888
 
 77777
@@ -59,15 +59,15 @@ hhhhhhh
 подназвание1
 подназвание2 < а б в г  >
 
-текст1
-текст2
+ текст1
+ текст2
 )");
         json output = {{"type", ""},
                        {"subtitle", json::array({"подназвание1"})},
                        {"title_slug", "а б в г"},
                        {"short_title", "подназвание2"},
                        {"title", "название"},
-                       {"body", json::array({"текст1\nтекст2\n"})}};
+                       {"body", json::array({" текст1\n текст2\n"})}};
         CHECK(picker.pick(input) == output);
     }
 

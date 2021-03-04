@@ -70,8 +70,7 @@ struct lineend
 struct paragraph_content
     : pegtl::plus<pegtl::seq<pegtl::not_at<lineend>, character>> {};
 struct paragraph
-    : pegtl::seq<pegtl::not_at<lineend>,
-                 pegtl::pad<paragraph_content, whitespace>, lineend> {};
+    : pegtl::seq<pegtl::not_at<lineend>, paragraph_content, lineend> {};
 struct section
     : pegtl::seq<pegtl::plus<paragraph>,
                  pegtl::star<pegtl::seq<pegtl::not_at<pegtl::eof>, lineend>>> {
@@ -168,6 +167,11 @@ inline void rtrim(std::string &s) {
             s.end());
 }
 
+inline void trim(std::string &s) {
+    ltrim(s);
+    rtrim(s);
+}
+
 std::pair<std::string, std::string> break_angles(const std::string &input) {
     std::pair<std::string, std::string> result{};
     std::size_t found = input.find("<");
@@ -179,9 +183,8 @@ std::pair<std::string, std::string> break_angles(const std::string &input) {
     found = result.second.find(">");
     result.second = result.second.substr(
         0, found == std::string::npos ? result.second.size() : found);
-    rtrim(result.first);
-    ltrim(result.second);
-    rtrim(result.second);
+    trim(result.first);
+    trim(result.second);
 
     return result;
 }

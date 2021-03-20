@@ -6,9 +6,9 @@ vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO ayum/ayum.github.com
+    REPO ayum/ayum.cpp
     REF 5ab10576fcc6535f13618dd8ca28d950c250ebe7
-    SHA512 8f2e87e8fefed8052201c3e8c8c30304e23325e4a04239a39245fd77457acd76f1433af4d9c0fae04b50729db977b60f8fb8e1374c7484dbd2043633163d99d9
+    SHA512 0a1d61ec81598e6ee684659181c1bea62bb67d0e925bed2c43289a06b584caa7b61539b1dcadaeef31ddf0254cf5d56e92bfe21fa45c91099b7a1cb4cd62a0f7
     HEAD_REF main
 )
 

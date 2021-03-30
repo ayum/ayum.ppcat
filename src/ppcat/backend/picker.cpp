@@ -130,7 +130,7 @@ entity parse_entity(const std::string_view &input) {
     auto slug = make_slug(input);
 
     if (false) {
-    } else if (slug.starts_with("статья")) {
+    } else if (slug.starts_with("статья") or slug.starts_with("письмо")) {
         result = article;
     } else if (slug.starts_with("автор") or slug.starts_with("авторы")) {
         result = author;
@@ -191,8 +191,6 @@ std::pair<std::string, std::string> break_angles(const std::string &input) {
 
 json::json_pointer proc_article(json &data, const json::json_pointer &ptr,
                                 section_type &sec) {
-    data["type"] = "статья";
-
     data["title"] = "";
     if (not sec.empty()) {
         data["title"] = sec[0];
@@ -259,9 +257,6 @@ json::json_pointer proc_date(json &data, const json::json_pointer &ptr,
         auto date_pubdate = break_angles(sec.back());
         data["date"] = date_pubdate.first;
         data["publication_date"] = date_pubdate.second;
-        if (date_pubdate.second.empty()) {
-            data["publication_date"] = date_pubdate.first;
-        }
         sec.pop_front();
     }
     sec.clear();
@@ -275,10 +270,12 @@ json smart_transform(data_type &data) {
 
     while (not data.empty()) {
         std::optional<entity> name;
+        std::string first_line;
         while (not data[0].empty()) {
             if (not name.has_value()) {
                 name = parse_entity(data[0][0]);
                 if (name.value() != entity::noname) {
+                    first_line = data[0][0];
                     data[0].pop_front();
                 }
             } else {
@@ -294,6 +291,7 @@ json smart_transform(data_type &data) {
                         break;
                     case entity::article:
                         ptr = proc_article(result, ptr, data[0]);
+                        result["type"] = make_slug(first_line);
                         break;
                     case entity::summary:
                         ptr = proc_summary(result, ptr, data[0]);

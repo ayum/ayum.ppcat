@@ -53,6 +53,23 @@ gggggggg < ee >
         CHECK(picker.pick(input) == output);
     }
 
+    SUBCASE("first section article pishmo") {
+        std::string_view input(R"(
+письмо
+название
+подназвание1
+подназвание2
+
+)");
+        json output = {{"type", "письмо"},
+                       {"subtitle", json::array({"подназвание1"})},
+                       {"short_title", "подназвание2"},
+                       {"title_slug", ""},
+                       {"title", "название"},
+                       {"body", json::array()}};
+        CHECK(picker.pick(input) == output);
+    }
+
     SUBCASE("no article") {
         std::string_view input(R"(
 название
@@ -107,6 +124,21 @@ ddd
                            {"date", "01.01.2001"},
                            {"publication_date", "12.12.1001"},
                            {"author", {{"name", "сам"}, {"link", "ссылка"}}}};
+            CHECK(picker.pick(input) == output);
+        }
+
+        SUBCASE("author, date, no angles") {
+            std::string_view input(R"(
+автор
+сам <>
+
+дата
+01.01.2001
+
+)");
+            json output = {{"date", "01.01.2001"},
+                           {"publication_date", ""},
+                           {"author", {{"name", "сам"}, {"link", ""}}}};
             CHECK(picker.pick(input) == output);
         }
 }
